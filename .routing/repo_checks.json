@@ -2,14 +2,16 @@
   "_comment": "Edit for your repository. The host copies these into verification_plan entries with required_by=repository (VER-5). Keep commands exactly as CI runs them.",
   "generated_by": null,
   "generated_on": null,
-  "sources": [],
+  "sources": [
+    ".github/workflows/ci.yml"
+  ],
   "required_ci": [
     "test",
     "lint"
   ],
   "commands": {
-    "test": "npm test",
-    "lint": "npm run lint"
+    "test": "cd web && npm test && npm run build",
+    "lint": "cd web && npm run lint"
   },
   "branch_protection": {
     "require_review": true,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CHAPTERS, PAGE_COUNT, chapterOf, pageAlt, pageSrc, parsePageHash, spreadOf } from './book'
+import { CHAPTERS, PAGE_COUNT, chapterOf, isSpread, keepAnchor, pageAlt, pageSrc, parsePageHash, spreadOf } from './book'
 
 describe('parsePageHash', () => {
   it('reads a page number', () => expect(parsePageHash('#/p/45')).toBe(45))
@@ -33,6 +33,24 @@ describe('spreadOf', () => {
   })
   it('handles the last page of an odd-length book', () => expect(spreadOf(287, 287)).toEqual([286, 287]))
   it('handles a lone last page', () => expect(spreadOf(288, 288)).toEqual([288]))
+})
+
+describe('isSpread (무대 크기 → 펼침면 여부)', () => {
+  it('uses spreads on wide stages', () => {
+    for (const [w, h] of [[1440, 796], [1920, 976], [1024, 664], [1280, 496], [844, 286]]) expect(isSpread(w, h)).toBe(true)
+  })
+  it('uses single pages on tall stages', () => {
+    for (const [w, h] of [[768, 920], [700, 796], [390, 740]]) expect(isSpread(w, h)).toBe(false)
+  })
+})
+
+describe('keepAnchor', () => {
+  it('keeps the right-hand 쪽 the reader chose while its spread is shown', () => expect(keepAnchor(45, 44, true)).toBe(45))
+  it('follows page-flip once the spread changes', () => {
+    expect(keepAnchor(45, 46, true)).toBe(46)
+    expect(keepAnchor(45, 42, true)).toBe(42)
+  })
+  it('always follows page-flip on single pages', () => expect(keepAnchor(45, 44, false)).toBe(44))
 })
 
 describe('page assets', () => {
