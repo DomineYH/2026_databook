@@ -133,7 +133,12 @@ export default function Viewer() {
     // A fold started on a corner has no position until its first frame; leaving the corner (or a drag) before that
     // made stopMove throw on every mouse move. Just drop such a fold.
     const stopMove = controller.stopMove.bind(controller)
-    controller.stopMove = () => (controller.getCalculation()?.getPosition() ? stopMove() : dropFold(flip))
+    // A hover preview must never turn the page; on a page narrower than page-flip's fixed 50px fold it rests across the
+    // spine (x <= 0), which stopMove completes as a turn (#15).
+    controller.stopMove = () => {
+      const pos = controller.getCalculation()?.getPosition()
+      return pos && !(hovering && pos.x <= 0) ? stopMove() : dropFold(flip)
+    }
     // Buttons, arrow keys and swipes fake a click 10px inside the book's edge; once the corner zone is under 10px that
     // misses and disableFlipByClick rejects it. Allow clicks only for the duration of these programmatic calls.
     // Once a page is narrower than that inset the fake point also lands on the wrong side of the spine and page-flip
