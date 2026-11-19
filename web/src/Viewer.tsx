@@ -241,15 +241,24 @@ export default function Viewer() {
     tocWasOpen.current = tocOpen
   }, [tocOpen])
 
+  // Captured when opening, not in an effect: by then the close button's autoFocus has taken focus.
+  const zoomReturn = useRef<Element | null>(null)
+  const openZoom = (ps: number[]) => { zoomReturn.current = document.activeElement; setZoomed(ps) }
   const zoomWasOpen = useRef(false)
   useEffect(() => {
-    if (!zoomed && zoomWasOpen.current) zoomButton.current?.focus()
+    if (!zoomed && zoomWasOpen.current) {
+      const back = zoomReturn.current
+      zoomReturn.current = null
+      if (back instanceof HTMLElement && back !== document.body && back.isConnected && !back.matches(':disabled')) back.focus()
+      // A hidden element (e.g. a link on a page turned away under zoom) silently refuses focus.
+      if (document.activeElement === document.body) zoomButton.current?.focus()
+    }
     zoomWasOpen.current = zoomed !== null
   }, [zoomed])
 
   // Built once: react-pageflip re-reads its children whenever they change.
   const pages = useMemo(() => PAGES.map((p) => (
-    <div className="page" key={p} onDoubleClick={() => setZoomed([p])}>
+    <div className="page" key={p} onDoubleClick={() => openZoom([p])}>
       <img data-src={pageSrc(p)} alt={pageAlt(p)} width={1600} height={2265} draggable={false} />
       {LINKS[p]?.map((l, i) => (
         <a key={i} className="page-link" href={pageHash(l.to)} aria-label={`${l.to}쪽으로 이동`}
@@ -297,7 +306,7 @@ export default function Viewer() {
           <span aria-live="polite"> / {PAGE_COUNT}</span>
         </form>
         <button onClick={() => api()?.flipNext()} aria-label="다음 쪽" disabled={visible.includes(PAGE_COUNT)}>▶</button>
-        <button ref={zoomButton} onClick={() => setZoomed(visible)} aria-label="크게 보기">⤢ 크게</button>
+        <button ref={zoomButton} onClick={() => openZoom(visible)} aria-label="크게 보기">⤢ 크게</button>
       </nav>
 
       {tocOpen && (
