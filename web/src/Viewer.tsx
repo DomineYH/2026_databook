@@ -23,6 +23,7 @@ type PageFlipApi = {
     stopMove(): void
     flipNext(corner?: string): void
     flipPrev(corner?: string): void
+    getDirectionByPoint(point: Point): number
     reset(): void
     setState(state: 'read'): void
     getCalculation(): { getPosition(): { x: number } | null } | null
@@ -135,12 +136,16 @@ export default function Viewer() {
     controller.stopMove = () => (controller.getCalculation()?.getPosition() ? stopMove() : dropFold(flip))
     // Buttons, arrow keys and swipes fake a click 10px inside the book's edge; once the corner zone is under 10px that
     // misses and disableFlipByClick rejects it. Allow clicks only for the duration of these programmatic calls.
-    for (const method of ['flipNext', 'flipPrev'] as const) {
+    // Once a page is narrower than that inset the fake point also lands on the wrong side of the spine and page-flip
+    // reads it as the opposite direction, so pin the direction to the one asked for (FlipDirection: 0 forward, 1 back).
+    const byPoint = controller.getDirectionByPoint
+    for (const [method, direction] of [['flipNext', 0], ['flipPrev', 1]] as const) {
       const original = controller[method].bind(controller)
       controller[method] = (corner) => {
         const settings = flip.getSettings()
         settings.disableFlipByClick = false
-        try { original(corner) } finally { settings.disableFlipByClick = true }
+        controller.getDirectionByPoint = () => direction
+        try { original(corner) } finally { settings.disableFlipByClick = true; controller.getDirectionByPoint = byPoint }
       }
     }
     // A jump may have arrived while the book was mounting; anchor holds the latest target.
