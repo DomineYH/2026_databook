@@ -3,3 +3,4 @@
 .routing/tasks/*.json
 .routing/evidence/*.json
 .routing/hook_log.jsonl
+.playwright-mcp
