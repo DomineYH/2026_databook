@@ -240,7 +240,8 @@ export default function Viewer() {
       const back = zoomReturn.current
       zoomReturn.current = null
       if (back instanceof HTMLElement && back !== document.body && back.isConnected && !back.matches(':disabled')) back.focus()
-      else zoomButton.current?.focus()
+      // A hidden element (e.g. a link on a page turned away under zoom) silently refuses focus.
+      if (document.activeElement === document.body) zoomButton.current?.focus()
     }
     zoomWasOpen.current = zoomed !== null
   }, [zoomed])
