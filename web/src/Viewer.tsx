@@ -26,6 +26,7 @@ type PageFlipApi = {
     getDirectionByPoint(point: Point): number
     reset(): void
     setState(state: 'read'): void
+    getState(): string
     getCalculation(): { getPosition(): { x: number } | null } | null
   }
   getUI(): { touchPoint: unknown }
@@ -135,9 +136,11 @@ export default function Viewer() {
     const stopMove = controller.stopMove.bind(controller)
     // A hover preview must never turn the page; on a page narrower than page-flip's fixed 50px fold it rests across the
     // spine (x <= 0), which stopMove completes as a turn (#15).
+    // A preview still up when settle() runs on a mode switch is in page-flip's fold_corner state; same rule (#19).
     controller.stopMove = () => {
       const pos = controller.getCalculation()?.getPosition()
-      return pos && !(hovering && pos.x <= 0) ? stopMove() : dropFold(flip)
+      const preview = hovering || controller.getState() === 'fold_corner'
+      return pos && !(preview && pos.x <= 0) ? stopMove() : dropFold(flip)
     }
     // Buttons, arrow keys and swipes fake a click 10px inside the book's edge; once the corner zone is under 10px that
     // misses and disableFlipByClick rejects it. Allow clicks only for the duration of these programmatic calls.
