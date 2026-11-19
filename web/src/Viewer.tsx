@@ -100,7 +100,8 @@ export default function Viewer() {
   )), [])
 
   const visible = landscape ? spreadOf(page) : [page]
-  const chapter = chapterOf(page)
+  // 장 always start on the right-hand page, so name the chapter of the last visible 쪽.
+  const chapter = chapterOf(visible[visible.length - 1])
 
   return (
     <div className={`viewer${idle && !tocOpen ? ' idle' : ''}`}>
