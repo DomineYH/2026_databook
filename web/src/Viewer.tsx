@@ -37,6 +37,10 @@ export default function Viewer() {
   const [tocOpen, setTocOpen] = useState(false)
   const [zoomed, setZoomed] = useState<number[] | null>(null)
   const [idle, setIdle] = useState(false)
+  const tocButton = useRef<HTMLButtonElement>(null)
+  const zoomButton = useRef<HTMLButtonElement>(null)
+  const tocList = useRef<HTMLOListElement>(null)
+  const overlayOpen = tocOpen || zoomed !== null
 
   const api = () => bookRef.current?.pageFlip()
 
@@ -88,6 +92,20 @@ export default function Viewer() {
     return () => { clearTimeout(timer); events.forEach((e) => removeEventListener(e, wake)) }
   }, [])
 
+  // Move focus into the TOC on open and back to its button on close (runs after inert is lifted).
+  const tocWasOpen = useRef(false)
+  useEffect(() => {
+    if (tocOpen) (tocList.current?.querySelector<HTMLElement>('.current a') ?? tocList.current?.querySelector('a'))?.focus()
+    else if (tocWasOpen.current) tocButton.current?.focus()
+    tocWasOpen.current = tocOpen
+  }, [tocOpen])
+
+  const zoomWasOpen = useRef(false)
+  useEffect(() => {
+    if (!zoomed && zoomWasOpen.current) zoomButton.current?.focus()
+    zoomWasOpen.current = zoomed !== null
+  }, [zoomed])
+
   // Built once: react-pageflip re-reads its children whenever they change.
   const pages = useMemo(() => PAGES.map((p) => (
     <div className="page" key={p} onDoubleClick={() => setZoomed([p])}>
@@ -104,12 +122,12 @@ export default function Viewer() {
 
   return (
     <div className={`viewer${idle && !tocOpen ? ' idle' : ''}`}>
-      <header className="bar top">
+      <header className="bar top" inert={overlayOpen}>
         <h1>{TITLE}</h1>
         <span className="chapter">{chapter?.title ?? ''}</span>
       </header>
 
-      <main className="stage">
+      <main className="stage" inert={overlayOpen}>
         <FlipBook ref={bookRef} className="book" width={800} height={1132} size="stretch"
           minWidth={260} maxWidth={1000} minHeight={368} maxHeight={1415}
           showCover usePortrait mobileScrollSupport={false} disableFlipByClick clickEventForward
@@ -119,8 +137,8 @@ export default function Viewer() {
         </FlipBook>
       </main>
 
-      <nav className="bar bottom" aria-label="쪽 이동">
-        <button onClick={() => setTocOpen(true)} aria-label="목차 열기">☰ 목차</button>
+      <nav className="bar bottom" aria-label="쪽 이동" inert={overlayOpen}>
+        <button ref={tocButton} onClick={() => setTocOpen(true)} aria-label="목차 열기">☰ 목차</button>
         <button onClick={() => api()?.flipPrev()} aria-label="이전 쪽" disabled={page <= 1}>◀</button>
         <form onSubmit={(e) => {
           e.preventDefault()
@@ -133,12 +151,12 @@ export default function Viewer() {
           <span aria-live="polite"> / {PAGE_COUNT}</span>
         </form>
         <button onClick={() => api()?.flipNext()} aria-label="다음 쪽" disabled={visible.includes(PAGE_COUNT)}>▶</button>
-        <button onClick={() => setZoomed(visible)} aria-label="크게 보기">⤢ 크게</button>
+        <button ref={zoomButton} onClick={() => setZoomed(visible)} aria-label="크게 보기">⤢ 크게</button>
       </nav>
 
       {tocOpen && (
         <div className="overlay" role="dialog" aria-modal="true" aria-label="목차" onClick={() => setTocOpen(false)}>
-          <ol className="toc" onClick={(e) => { e.stopPropagation(); if ((e.target as Element).closest('a')) setTocOpen(false) }}>
+          <ol className="toc" ref={tocList} onClick={(e) => { e.stopPropagation(); if ((e.target as Element).closest('a')) setTocOpen(false) }}>
             <li><a href={pageHash(1)}>표지</a></li>
             <li><a href={pageHash(3)}>목차</a></li>
             {CHAPTERS.map((c) => (
