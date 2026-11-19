@@ -9,7 +9,7 @@ type PageFlipApi = {
   getSettings(): Record<string, unknown>
   update(): void
   getRender(): { finishAnimation(): void }
-  getFlipController(): Record<'flipNext' | 'flipPrev', (corner?: string) => void>
+  getFlipController(): Record<'flipNext' | 'flipPrev', (corner?: string) => void> & { stopMove(): void }
 }
 type FlipEvent = { data: unknown }
 type InitEvent = { data: { page: number } }
@@ -86,10 +86,16 @@ export default function Viewer() {
 
   // page-flip reads settings only at init and never stops its render loop on unmount, so switch modes on the live instance.
   useEffect(() => {
-    spreadRef.current = spread
     const flip = api()
+    if (flip) {
+      // Settle a turn, held drag or corner preview under the old mode first; left running it would land past the
+      // new layout's spreads (stopping page-flip) or be recorded with the wrong mode.
+      flip.getRender().finishAnimation()
+      flip.getFlipController().stopMove()
+      flip.getRender().finishAnimation()
+    }
+    spreadRef.current = spread
     if (!flip || spread === null) return
-    flip.getRender().finishAnimation() // a turn still animating would land past the new layout's spreads and stop page-flip
     const keep = anchor.current
     Object.assign(flip.getSettings(), modeSettings(spread))
     flip.update()
