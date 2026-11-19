@@ -11,12 +11,12 @@
   "roles": {
     "planner": {
       "harness": "claude",
-      "model": "fable-5-2",
+      "model": "claude-fable-5-2",
       "effort": "high"
     },
     "implementer": {
       "harness": "claude",
-      "model": "opus-5-5",
+      "model": "claude-opus-5-5",
       "effort": "high"
     },
     "task-verifier": {
