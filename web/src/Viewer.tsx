@@ -8,16 +8,26 @@ type PageFlipApi = {
   turnToPage(index: number): void
   getSettings(): Record<string, unknown>
   update(): void
-  getRender(): { finishAnimation(): void; setBottomPage(p: null): void; setFlippingPage(p: null): void; clearShadow(): void }
-  getFlipController(): Record<'flipNext' | 'flipPrev', (corner?: string) => void> & {
+  getRender(): {
+    finishAnimation(): void
+    setBottomPage(p: null): void
+    setFlippingPage(p: null): void
+    clearShadow(): void
+    getOrientation(): 'portrait' | 'landscape'
+    getRect(): { pageWidth: number; height: number }
+    convertToBook(point: Point): Point
+  }
+  getFlipController(): {
+    isPointOnCorners(point: Point): boolean
     stopMove(): void
     reset(): void
     setState(state: 'read'): void
     getCalculation(): { getPosition(): { x: number } | null } | null
   }
   getUI(): { touchPoint: unknown }
-  userStop(point: { x: number; y: number }, isSwipe: boolean): void
+  userStop(point: Point, isSwipe: boolean): void
 }
+type Point = { x: number; y: number }
 type FlipEvent = { data: unknown }
 type InitEvent = { data: { page: number } }
 // react-pageflip's typings mark every setting as required; we pass only the ones we change.
@@ -96,18 +106,21 @@ export default function Viewer() {
     const p = e.data.page + 1
     reveal(p)
     history.replaceState(null, '', pageHash(p))
-    // Buttons, arrow keys and swipes turn pages by faking a corner click, which disableFlipByClick rejects whenever
-    // the fake point misses a corner (always for "previous" on a single page). Let those calls through.
-    // ponytail: patches react-pageflip/page-flip 2.0.x internals; re-check on upgrade.
+    // ponytail: patches page-flip 2.0.x internals; re-check on upgrade.
     const flip = api()!
     const controller = flip.getFlipController()
-    for (const method of ['flipNext', 'flipPrev'] as const) {
-      const original = controller[method].bind(controller)
-      controller[method] = (corner) => {
-        const settings = flip.getSettings()
-        settings.disableFlipByClick = false
-        try { original(corner) } finally { settings.disableFlipByClick = true }
-      }
+    const render = flip.getRender()
+    // On a single page page-flip tests corners against a virtual two-page book, so the visible page's left corners
+    // never count and clicks, buttons, arrow keys and swipes (all corner clicks under disableFlipByClick) could not
+    // go back. Test against the visible page, the book's right half, instead.
+    const onCorners = controller.isPointOnCorners.bind(controller)
+    controller.isPointOnCorners = (point) => {
+      if (render.getOrientation() !== 'portrait') return onCorners(point)
+      const { pageWidth, height } = render.getRect()
+      const { x, y } = render.convertToBook(point)
+      const px = x - pageWidth
+      const reach = Math.hypot(pageWidth, height) / 5
+      return px > 0 && px < pageWidth && y > 0 && y < height && (px < reach || px > pageWidth - reach) && (y < reach || y > height - reach)
     }
     // A fold started on a corner has no position until its first frame; leaving the corner (or a drag) before that
     // made stopMove throw on every mouse move. Just drop such a fold.
@@ -135,8 +148,9 @@ export default function Viewer() {
 
   // Every link (목차 패널, 3쪽 목차, 쪽 번호 입력) just changes the hash.
   useEffect(() => {
-    const go = () => {
-      const p = parsePageHash(location.hash)
+    // Read the event's URL: onFlip may already have replaced location.hash (e.g. during a mode switch).
+    const go = (e: HashChangeEvent) => {
+      const p = parsePageHash(new URL(e.newURL).hash)
       const flip = api()
       if (p && flip) {
         settle(flip)
