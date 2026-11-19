@@ -30,7 +30,6 @@ type PageFlipApi = {
 }
 type Point = { x: number; y: number }
 type FlipEvent = { data: unknown }
-type InitEvent = { data: { page: number } }
 // react-pageflip's typings mark every setting as required; we pass only the ones we change.
 const FlipBook = HTMLFlipBook as unknown as ComponentType<Record<string, unknown> & { children: ReactNode; ref: Ref<{ pageFlip(): PageFlipApi }> }>
 
@@ -103,10 +102,7 @@ export default function Viewer() {
     localStorage.setItem(STORAGE_KEY, String(p))
   }, [])
 
-  const onInit = useCallback((e: InitEvent) => {
-    const p = e.data.page + 1
-    reveal(p)
-    history.replaceState(null, '', pageHash(p))
+  const onInit = useCallback(() => {
     // ponytail: patches page-flip 2.0.x internals; re-check on upgrade.
     const flip = api()!
     const controller = flip.getFlipController()
@@ -134,6 +130,10 @@ export default function Viewer() {
     // made stopMove throw on every mouse move. Just drop such a fold.
     const stopMove = controller.stopMove.bind(controller)
     controller.stopMove = () => (controller.getCalculation()?.getPosition() ? stopMove() : dropFold(flip))
+    // A jump may have arrived while the book was mounting; anchor holds the latest target.
+    flip.turnToPage(anchor.current - 1)
+    reveal(anchor.current)
+    history.replaceState(null, '', pageHash(anchor.current))
   }, [])
 
   // page-flip reads settings only at init and never stops its render loop on unmount, so switch modes on the live instance.
@@ -160,10 +160,11 @@ export default function Viewer() {
     const go = (e: HashChangeEvent) => {
       const p = parsePageHash(new URL(e.newURL).hash)
       const flip = api()
-      if (p && flip) {
-        settle(flip)
+      if (p) {
+        if (flip) settle(flip)
         anchor.current = p
-        flip.turnToPage(p - 1)
+        if (flip) flip.turnToPage(p - 1)
+        else setPage(p) // book not ready yet: onInit opens anchor
       }
       setTocOpen(false)
     }
@@ -173,8 +174,8 @@ export default function Viewer() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement) return
       if (e.key === 'Escape') { setZoomed(null); setTocOpen(false) }
+      if (e.target instanceof HTMLInputElement) return
       if (zoomed || tocOpen) return
       if (e.key === 'ArrowRight') api()?.flipNext()
       if (e.key === 'ArrowLeft') api()?.flipPrev()
