@@ -27,7 +27,7 @@ type PageFlipApi = {
     reset(): void
     setState(state: 'read'): void
     getState(): string
-    getCalculation(): { getPosition(): { x: number } | null } | null
+    getCalculation(): { getPosition(): { x: number } | null; getDirection(): number } | null
   }
   getUI(): { touchPoint: unknown }
   userStop(point: Point, isSwipe: boolean): void
@@ -137,10 +137,15 @@ export default function Viewer() {
     // A hover preview must never turn the page; on a page narrower than page-flip's fixed 50px fold it rests across the
     // spine (x <= 0), which stopMove completes as a turn (#15).
     // A preview still up when settle() runs on a mode switch is in page-flip's fold_corner state; same rule (#19).
+    // On a single page a backward fold maps to x <= 0 anywhere on screen, so any backward drag turned the page;
+    // turn only once the corner is past the middle of the visible page (#18). FlipDirection BACK is 1.
     controller.stopMove = () => {
-      const pos = controller.getCalculation()?.getPosition()
+      const calc = controller.getCalculation()
+      const pos = calc?.getPosition()
       const preview = hovering || controller.getState() === 'fold_corner'
-      return pos && !(preview && pos.x <= 0) ? stopMove() : dropFold(flip)
+      const shortBack = !hovering && render.getOrientation() === 'portrait' && calc?.getDirection() === 1
+        && !!pos && pos.x > -render.getRect().pageWidth / 2
+      return pos && !(preview && pos.x <= 0) && !shortBack ? stopMove() : dropFold(flip)
     }
     // Buttons, arrow keys and swipes fake a click 10px inside the book's edge; once the corner zone is under 10px that
     // misses and disableFlipByClick rejects it. Allow clicks only for the duration of these programmatic calls.
