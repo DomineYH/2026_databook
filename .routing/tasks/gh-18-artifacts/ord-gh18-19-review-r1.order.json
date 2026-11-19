@@ -1,0 +1,64 @@
+{
+ "task_id": "gh-18,gh-19",
+ "order_id": "ord-gh18-19-review-r1",
+ "order_revision": 1,
+ "role_id": "task-verifier",
+ "purpose": "independent_review",
+ "at_stage": "independent_review_and_ci",
+ "run_when": "now",
+ "objective": "Independently review PR #21 (branch fix/issues-18-19, commits d33591e (#19) and e2b53b7 (#18), diff 39944ce..e2b53b7) that changes the controller.stopMove wrapper in web/src/Viewer.tsx.",
+ "acceptance_criteria": [
+  "#19: 1440x160, #/p/45, one single-step mouse move onto the bottom-right book corner (3px inside), wait 300ms, no further mouse event, setViewportSize 60x160 -> hash stays #/p/45 (before: #/p/46). Same for top-right (before 46), bottom-left (before 42), and the reverse switch 60x160 -> 1440x160 from bottom-right (before 46).",
+  "#18: 390x844, #/p/45: drag from the left-bottom corner +40px (15 steps) and +8px, and left-top +40px, mouse and touch -> stays #/p/45 (before: #/p/44). A backward drag past the middle of the visible page (e.g. +220px or +300px in 15 steps) still turns to #/p/44; a left corner click still turns to #/p/44.",
+  "#15 unchanged: 1440x160 hover a corner then one single-step move to the window centre -> #/p/45.",
+  "#11 unchanged: 1440x160 prev/next buttons and ArrowLeft/ArrowRight turn pages.",
+  "1440x900 and 390x844: hover preview appears and returns; corner click turns; a drag past the spine turns; a short drag returns; right-side behaviour at 390x844 unchanged.",
+  "A hash jump (location.hash = '#/p/80') still lands on #/p/80.",
+  "No browser console errors except the local-preview 404 for /_vercel/insights/script.js (pre-existing).",
+  "`cd web && npm test && npm run build` and `cd web && npm run lint` pass."
+ ],
+ "input_refs": [
+  "git diff 39944ce..e2b53b7 and each commit separately",
+  "gh issue view 18 / gh issue view 19 --repo DomineYH/2026_databook (each has a triage comment)",
+  "gh pr view 21",
+  "implementer report (claims, not proof): /mnt/c/dev/2026_databook-wt/gh-18-19/.routing/tasks/ord-gh18-19-impl-r1.report.json",
+  "triage evidence: /mnt/c/dev/2026_databook/.routing/evidence/ord-gh18-triage-r1.json, ord-gh19-triage-r1.json",
+  "web/node_modules/page-flip/src/Flip/Flip.ts (stopMove, showCorner, fold, flip, getState, animation callbacks), Render/Render.ts (convertToPage, getRect, finishAnimation), PageFlip.ts (userMove/userStop), UI/UI.ts",
+  "web/src/Viewer.tsx settle(), dropFold(), the isPointOnCorners and flipNext/flipPrev patches"
+ ],
+ "workspace": "/mnt/c/dev/2026_databook-wt/gh-18-19",
+ "input_version": "e2b53b7",
+ "read_scope": [
+  "repository:read-only"
+ ],
+ "write_scope": [
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-review-r1/ (review file, optional browser scripts and output)"
+ ],
+ "allowed_actions": [
+  "read/search files",
+  "git show/diff/log (read-only)",
+  "gh issue view / gh pr view / gh pr checks (read-only)",
+  "cd web && npm test / npm run lint",
+  "optional: npx vite build --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-review-r1/dist and npx vite preview --port 4314 --strictPort --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-review-r1/dist, driven by a Node script with require('/home/dominelinux/.npm/_npx/e41f203b7505f1fb/node_modules/playwright-core') chromium.launch({headless:true}) (port 4314 only; stop the server when done). The implementer's script may be reused if found under /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-impl-r1/."
+ ],
+ "constraints_and_local_discretion": [
+  "Read-only on the repository: do not edit, stage, commit, push, or comment on GitHub. AGENTS.md/CLAUDE.md describe the host/coordinator, not you; do not start agents or panes.",
+  "Verdict rules: PASS = no important findings and every acceptance criterion met by code inspection and/or browser evidence. FAIL = at least one important finding (a concrete defect or unmet criterion caused by this change). BLOCKED only if you cannot read the inputs. Pre-existing issues and the local-preview 404 for /_vercel/insights/script.js are pre_existing and never fail the review. Do not return BLOCKED merely because you did not run a browser.",
+  "Product rule accepted by the owner (do not report it as a defect): on a single page a backward drag turns only once the corner is past the middle of the visible page.",
+  "Questions: (1) For every stopMove caller (showCorner leaving the corner, userStop after a drag or touch, settle() on hash jump and mode switch) and every state (read, fold_corner, user_fold, flipping): which branch runs now, and is it right? (2) Can shortBack fire for something that must still turn: a button/ArrowLeft/swipe backward turn in flight when settle() runs, a touch swipe (userStop with isSwipe), a drag that started as forward? Is FlipDirection BACK really 1 in the installed build? (3) Can `preview` (getState() === 'fold_corner') be true when it should not, e.g. a drag that began from a corner preview (does fold() change the state before stopMove)? (4) Is dropFold the right cleanup in each new case, leaving page-flip consistent for the next interaction? (5) Does anything change at 1440x900 / 390x844 for hover, clicks, long drags, or for #11/#15? (6) Are comments and commit messages accurate?",
+  "Report only actionable findings with file:line and a concrete failure scenario."
+ ],
+ "verification": [
+  "review of fixed diff 39944ce..e2b53b7",
+  "npm test / lint",
+  "optional browser check"
+ ],
+ "stop_conditions": [
+  "worktree HEAD is not e2b53b7 -> BLOCKED"
+ ],
+ "deliverable": "Write your review to /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-review-r1/review.md as a block starting with the line `REVIEW_BEGIN` and ending with `REVIEW_END`, containing: verdict PASS|FAIL|BLOCKED, reviewed_revision, findings [severity important|nit|pre_existing, file:line, summary, failure_scenario], criteria_check (each acceptance criterion -> met/unmet/unverifiable + evidence), answers to questions 1-6, checks_run with results. Then print as your final message exactly: `REPORT RESULT_SUBMITTED /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-review-r1/review.md` (or `REPORT BLOCKED <reason>`).",
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "pane_id": "w6:pF"
+}

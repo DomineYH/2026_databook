@@ -1,0 +1,17 @@
+{
+ "task": "Implement GitHub issue #15 in the static React ebook viewer: in a very low window (about 1440x160, page width under 50px) hovering a book corner shows page-flip's fold preview, and moving the mouse out of the corner turns the page instead of cancelling the preview. Root cause (confirmed from source): page-flip 2.0.7 showCorner animates the preview to a fixed point pageWidth-50, which crosses the spine (x <= 0) when pageWidth <= 50, and stopMove completes the turn when pos.x <= 0. Fix in the existing controller.stopMove wrapper in Viewer.tsx onInit: when the existing hovering flag is true (call comes from showCorner) and the fold position has x <= 0, call the existing dropFold(flip) instead of page-flip's stopMove. Otherwise unchanged. No new files, dependencies or e2e tooling; do not patch node_modules.",
+ "context": {
+  "changed_paths": ["web/src/Viewer.tsx (onInit instance patches: stopMove wrapper next to the showCorner/hovering wrapper)"],
+  "observed_behavior": "At 1440x160 on #/p/45, hover the bottom-right corner then move out: page becomes 46. At 1440x900 and 390x844 the fold returns. Reproduced 3/3 on 6488d90 by a worker (issue text). page-flip Flip.ts:297 fixedCornerSize=50; Flip.ts:314-319 leaving the corner calls finishAnimation then stopMove; Flip.ts:273 pos.x <= 0 -> turn. Viewer.tsx:119-124 hovering flag set only during showCorner; Viewer.tsx:135-136 stopMove wrapper falls back to dropFold when there is no position.",
+  "contracts": "No external API. page-flip source vendored in web/node_modules (pinned in web/package-lock.json). Static site, no auth, no persisted data.",
+  "test_setup": "vitest pure-function tests only (book.ts); no jsdom or e2e. Verification is a Playwright browser check via `npm run preview` at 1440x160, 1440x900 and 390x844 as done for PR #14. CI runs `cd web && npm test && npm run build` and `cd web && npm run lint`; main aca4937 is the current head.",
+  "verified_flags": {"security_sensitive": false, "data_sensitive": false, "shared_core_change": false, "production_impact": false, "minor_scope_verified": false, "active_incident_related_to_task": false, "touches_ui": true, "touches_external_api": false, "needs_design": false, "require_independent_review": true},
+  "evidence_gaps": [],
+  "consumers": "Viewer.tsx is the app's single UI component, imported only by web/src/main.tsx. stopMove is reached from three paths: showCorner leaving the corner (hovering=true, the bug path), mouseup/touchend after a drag via PageFlip.userStop (hovering=false), and the app's settle() before a hash jump or mode switch (hovering=false). The new branch requires hovering=true, so only the hover path changes.",
+  "testing_facts": "The defect has a faithful reproducer only in a real browser: npm run preview, viewport 1440x160, #/p/45, one mouse move onto the bottom-right corner, ~100ms wait, one move to the window centre -> hash becomes #/p/46. Hand-moved mice are timing dependent, so single-step moves are required. Workers have Playwright. page-flip needs a real DOM and canvas, so no unit seam exists; no test infrastructure is to be added."
+ },
+ "testing_evidence": {
+  "test_seam": "substantial_setup: no unit seam for the page-flip instance patch; scripted browser check at fixed viewports",
+  "existing_checks": "main aca4937 (merge of PR #16; PR #14 CI passed)"
+ }
+}

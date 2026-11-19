@@ -1,0 +1,30 @@
+{
+ "task": "Implement GitHub issue #19 in the static React ebook viewer: a corner hover preview that is still up (no mousemove after it appeared, e.g. the pointer left the window) is completed as a page turn when the view mode switches (spread <-> single page) in a very small window, because the app's settle() calls stopMove with hovering=false. Fix in the existing controller.stopMove wrapper in Viewer.tsx onInit: treat the fold as a preview when hovering is true OR controller.getState() === 'fold_corner', and drop it (existing dropFold) instead of turning when pos.x <= 0. Add getState to the controller type. Leaving the preview drawn at normal sizes is out of scope.",
+ "context": {
+  "changed_paths": [
+   "web/src/Viewer.tsx"
+  ],
+  "observed_behavior": "Reproduced on main 39944ce: 1440x160, hover bottom-right corner, no further mouse event, resize to 60x160 -> #/p/45 becomes #/p/46 (5/5); left corners -> #/p/42. At normal sizes the preview stays drawn but no page turns. Runtime-injected fix kept #/p/45 in every failing trial.",
+  "contracts": "No external API. page-flip 2.0.7 source vendored in web/node_modules (pinned in web/package-lock.json). Static site, no auth, no persisted data.",
+  "test_setup": "vitest pure-function tests only (web/src/book.ts); no jsdom or e2e. Verification is a scripted Chromium (Playwright) check against `vite preview`, as for PR #14 and PR #17. CI runs `cd web && npm test && npm run build` and `cd web && npm run lint`; main 39944ce passed CI.",
+  "verified_flags": {
+   "security_sensitive": false,
+   "data_sensitive": false,
+   "shared_core_change": false,
+   "production_impact": false,
+   "minor_scope_verified": false,
+   "active_incident_related_to_task": false,
+   "touches_ui": true,
+   "touches_external_api": false,
+   "needs_design": false,
+   "require_independent_review": true
+  },
+  "evidence_gaps": [],
+  "consumers": "Viewer.tsx is the app's single UI component, imported only by web/src/main.tsx; nothing is published as a library.",
+  "testing_facts": "The defect has a faithful reproducer only in a real browser: single-step mouse move onto a corner then a viewport resize across the spread/single threshold. No unit seam; no test infrastructure is to be added."
+ },
+ "testing_evidence": {
+  "test_seam": "substantial_setup: no unit seam for the Viewer component; scripted browser check",
+  "existing_checks": "main 39944ce CI passed"
+ }
+}

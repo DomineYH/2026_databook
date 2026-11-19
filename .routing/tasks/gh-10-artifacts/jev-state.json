@@ -1,0 +1,30 @@
+{
+ "task": "Implement GitHub issue #10 in the static React ebook viewer: the zoom overlay opens from the '크게' button or by double-clicking a page, but on close focus always goes to the '크게' button. Remember document.activeElement when the zoom overlay is opened (in the open handlers, because the overlay's close button autofocuses on mount) and return focus to it on close; fall back to the '크게' button when it is missing, body, or no longer in the document.",
+ "context": {
+  "changed_paths": [
+   "web/src/Viewer.tsx"
+  ],
+  "observed_behavior": "Viewer.tsx: onDoubleClick={() => setZoomed([p])} on each page; the button onClick={() => setZoomed(visible)}; an effect focuses zoomButton when zoomed goes from open to closed; the close button has autoFocus. page-flip's book mousedown handler calls preventDefault, so double-clicking a page does not move focus away from e.g. the page-number input.",
+  "contracts": "No external API. page-flip 2.0.7 source vendored in web/node_modules (pinned in web/package-lock.json). Static site, no auth, no persisted data.",
+  "test_setup": "vitest pure-function tests only (web/src/book.ts); no jsdom or e2e. Verification is a scripted Chromium (Playwright) check against `vite preview`, as for PR #14 and PR #17. CI runs `cd web && npm test && npm run build` and `cd web && npm run lint`; main 39944ce passed CI.",
+  "verified_flags": {
+   "security_sensitive": false,
+   "data_sensitive": false,
+   "shared_core_change": false,
+   "production_impact": false,
+   "minor_scope_verified": false,
+   "active_incident_related_to_task": false,
+   "touches_ui": true,
+   "touches_external_api": false,
+   "needs_design": false,
+   "require_independent_review": true
+  },
+  "evidence_gaps": [],
+  "consumers": "Viewer.tsx is the app's single UI component, imported only by web/src/main.tsx; nothing is published as a library.",
+  "testing_facts": "Focus behaviour needs a real DOM: verify in Chromium with Playwright (focus the page-number input, double-click a page, press Escape or click close, check document.activeElement). No jsdom; no test infrastructure is to be added."
+ },
+ "testing_evidence": {
+  "test_seam": "substantial_setup: no unit seam for the Viewer component; scripted browser check",
+  "existing_checks": "main 39944ce CI passed"
+ }
+}

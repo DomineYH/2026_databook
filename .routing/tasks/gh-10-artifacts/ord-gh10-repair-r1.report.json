@@ -1,0 +1,47 @@
+{
+ "status": "RESULT_SUBMITTED",
+ "order_id": "ord-gh10-repair-r1",
+ "commits": [
+  {
+   "sha": "6175eef",
+   "subject": "Fall back to the zoom button when the remembered element hides"
+  }
+ ],
+ "pushed": "origin fix/issue-10 57702d1..6175eef (plain push)",
+ "files_changed": [
+  "web/src/Viewer.tsx"
+ ],
+ "verification": [
+  {
+   "check_id": "red",
+   "command_or_steps": "build 57702d1, vite preview :4312, node /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh10-repair-r1/check.cjs (reviewer script adapted: port 4312, PASS/FAIL verdicts, hidden-link block at 1440x900 only per criterion) -> /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh10-repair-r1/red.txt",
+   "result": "fail_as_expected",
+   "notes": "Reviewer scenario reproduced at 1440x900 for Escape and ✕: ArrowRight then double-click (turn finishes under zoom, #/p/4) -> remembered link connected, enabled, 0 rects, page display:none, active=BODY; hash change to #/p/8 under zoom -> active=BODY. Visible page link restored correctly."
+  },
+  {
+   "check_id": "green",
+   "command_or_steps": "rebuild, vite preview :4312, node /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh10-repair-r1/check.cjs -> /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh10-repair-r1/green.txt (exit 0); node /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh10-impl-r1/check.cjs",
+   "result": "pass",
+   "notes": "Reviewer scenario: all four runs (turn under zoom / hash #/p/8 x Escape / ✕) -> focus on 크게 보기. Visible page link still regains focus (Escape and ✕). Both viewports: c1 크게 -> 크게; c2 page input -> input; c3 TOC/next buttons -> same control; c4 body -> 크게; disabled prev and removed input -> 크게. Legacy (no inert) Tab/Shift+Tab trap in TOC and zoom, TOC focus on open/close, ArrowRight blocked under zoom and paging after close, ArrowLeft all pass. Only console/HTTP error: 404 /_vercel/insights/script.js."
+  },
+  {
+   "check_id": "repo-test",
+   "command_or_steps": "cd web && npm test && npm run build",
+   "result": "pass",
+   "notes": "21 tests passed; build ok"
+  },
+  {
+   "check_id": "repo-lint",
+   "command_or_steps": "cd web && npm run lint",
+   "result": "pass",
+   "notes": "oxlint, no findings"
+  }
+ ],
+ "not_run_with_reasons": [
+  "Hidden-link scenario not run at 390x844: the acceptance criterion specifies 1440x900, and the reviewer's mobile in-flight-turn probe timed out opening zoom."
+ ],
+ "open_issues": [
+  "Deviation from the order's literal design: the fallback condition is `document.activeElement === document.body` instead of `document.activeElement !== back`. With `!== back`, the nothing-focused case (back is body, focus stays on body) would skip the fallback and break criterion 4. Focus can only be on body here when restore failed or was not attempted, because the close button has just been removed. The existing guard is kept."
+ ],
+ "question": null
+}

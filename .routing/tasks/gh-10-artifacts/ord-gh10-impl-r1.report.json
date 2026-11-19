@@ -1,0 +1,46 @@
+{
+ "status": "RESULT_SUBMITTED",
+ "order_id": "ord-gh10-impl-r1",
+ "commits": [
+  {
+   "sha": "57702d1",
+   "subject": "Return focus to where it was when the zoom view closes"
+  }
+ ],
+ "files_changed": [
+  "web/src/Viewer.tsx"
+ ],
+ "verification": [
+  {
+   "check_id": "red",
+   "command_or_steps": "build unchanged 39944ce, vite preview :4312, node /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh10-impl-r1/check.cjs (output /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh10-impl-r1/red.txt)",
+   "result": "fail_as_expected",
+   "notes": "Criterion 2 failed on unchanged code at both 1440x900 and 390x844: before=이동할 쪽 번호 (page input), during=✕ 닫기, after=크게 보기, for Escape and ✕. Same for TOC/next buttons (criterion 3)."
+  },
+  {
+   "check_id": "green",
+   "command_or_steps": "rebuild, vite preview :4312, node /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh10-impl-r1/check.cjs (output /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh10-impl-r1/green.txt), node /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh10-impl-r1/regress.cjs",
+   "result": "pass",
+   "notes": "Both viewports, Escape and ✕: c1 크게 button -> 크게 보기; c2 page input + dblclick -> 이동할 쪽 번호; c3 목차 열기 / 다음 쪽 + dblclick -> same control; c4 body + dblclick -> 크게 보기; c5 remembered 이전 쪽 button disabled while open -> 크게 보기. Regression: TOC opens on 표지 link and closes to 목차 열기; ArrowRight blocked while zoomed and turns the page after close; Shift+Tab in zoom stays on ✕ 닫기. Only console errors: 404 /_vercel/insights/script.js (pre-existing)."
+  },
+  {
+   "check_id": "repo-test",
+   "command_or_steps": "cd web && npm test && npm run build",
+   "result": "pass",
+   "notes": "21 tests passed; build ok"
+  },
+  {
+   "check_id": "repo-lint",
+   "command_or_steps": "cd web && npm run lint",
+   "result": "pass",
+   "notes": "oxlint, no findings"
+  }
+ ],
+ "not_run_with_reasons": [
+  "Tab behaviour in the zoom overlay was not compared against the unchanged build (in Chromium with native inert, Tab from ✕ goes to body); the diff does not touch onKey or the overlay markup."
+ ],
+ "open_issues": [
+  "npm ci was run in the worktree (web/node_modules was missing); web/dist build output is in the worktree, not the scratchpad (gitignored, not committed)."
+ ],
+ "question": null
+}

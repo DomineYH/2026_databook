@@ -1,0 +1,52 @@
+{
+ "task_id": "gh-15",
+ "order_id": "ord-gh15-triage-r1",
+ "order_revision": 1,
+ "role_id": "inspector",
+ "purpose": "repository_evidence",
+ "at_stage": "intake",
+ "run_when": "now",
+ "objective": "Triage GitHub issue #15 (DomineYH/2026_databook): verify from source whether the stated root cause is right, decide the triage label, and if it is agent-ready write an agent brief.",
+ "evidence_gap": "repo: is the issue's root-cause hypothesis (page-flip showCorner moves the fold to a fixed pageWidth-50 point; with page width < 50px that point crosses the spine so stopMove(pos.x <= 0) completes the flip) correct, and which of the two candidate fixes is smaller and safe?",
+ "acceptance_criteria": [
+  "Root-cause verdict confirmed|refuted|partly with file:line evidence from web/node_modules/page-flip/src/Flip/Flip.ts and web/src/Viewer.tsx",
+  "Every code path that calls showCorner / stopMove / the app's hovering patch is listed",
+  "A recommended fix (one of the issue's candidates or a better one) with the exact place to change and why it keeps 1440x900 and 390x844 behaviour unchanged",
+  "Triage label chosen from: ready-for-agent | ready-for-human | needs-info | wontfix, with a one-paragraph reason",
+  "If ready-for-agent: an agent brief (Korean, plain language) with summary, current vs desired behaviour, key interfaces, acceptance criteria, out of scope"
+ ],
+ "input_refs": [
+  "gh issue view 15 --repo DomineYH/2026_databook",
+  "web/src/Viewer.tsx (around lines 110-140: showCorner/hovering/stopMove patches)",
+  "web/node_modules/page-flip/src/Flip/Flip.ts (showCorner ~296-310, stopMove ~265-275, and callers)",
+  "web/node_modules/page-flip/src (UI/event handlers that call showCorner/stopMove, e.g. UI.ts)",
+  "docs/agents/triage-labels.md, GLOSSARY.md, docs/adr/ (domain terms)",
+  "PR #14 and issue #11 for context: gh pr view 14 / gh issue view 11"
+ ],
+ "workspace": "/mnt/c/dev/2026_databook",
+ "input_version": "aca4937",
+ "read_scope": ["repository:read-only"],
+ "write_scope": [".routing/evidence/ord-gh15-triage-r1.json"],
+ "allowed_actions": [
+  "read/search files",
+  "git show/diff/log (read-only)",
+  "gh issue view / gh pr view (read-only)"
+ ],
+ "constraints_and_local_discretion": [
+  "Read-only on the repository: do not edit, stage, commit, push, label, or comment on GitHub. The host applies labels and comments.",
+  "The only file you may write is .routing/evidence/ord-gh15-triage-r1.json.",
+  "The repository CLAUDE.md/AGENTS.md describe the host/coordinator, not you: do not start herdr panes, sub-agents or routing calls.",
+  "Do not run servers or browsers. Judge from source; where only a browser can decide, say exactly what the host should run.",
+  "Keep the brief free of line numbers that will rot; name functions/files instead."
+ ],
+ "stop_conditions": [
+  "HEAD is not aca4937 (stale input) -> report BLOCKED",
+  "you would need to write anything other than the evidence file -> report NEEDS_DECISION"
+ ],
+ "deliverable": "Write .routing/evidence/ord-gh15-triage-r1.json as JSON: {order_id, input_version, root_cause: {verdict, explanation, evidence:[file:line]}, call_paths:[...], recommended_fix: {where, change, why_safe, test_idea}, label, label_reason, agent_brief (markdown string or null), open_questions:[...]}. Then print as your final message exactly one line: `REPORT RESULT_SUBMITTED .routing/evidence/ord-gh15-triage-r1.json` (or `REPORT BLOCKED <reason>` / `REPORT NEEDS_DECISION <question>`).",
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "pane_id": "w6:p7",
+ "setting_overrides": {"harness": "claude", "model": "claude-fable-5-2", "effort": "high", "source": "user prompt (MODEL-1 prompt override)"}
+}

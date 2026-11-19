@@ -1,0 +1,78 @@
+{
+ "task_id": "gh-18,gh-19",
+ "order_id": "ord-gh18-19-impl-r1",
+ "order_revision": 1,
+ "role_id": "implementer",
+ "purpose": "implementation",
+ "at_stage": "implementation",
+ "run_when": "now",
+ "objective": "Fix GitHub issues #19 and #18 in web/src/Viewer.tsx with two commits on branch fix/issues-18-19 in the worktree /mnt/c/dev/2026_databook-wt/gh-18-19: first #19, then #18.",
+ "acceptance_criteria": [
+  "#19: 1440x160, #/p/45, one single-step mouse move onto the bottom-right book corner (3px inside), wait 300ms, no further mouse event, setViewportSize 60x160 -> hash stays #/p/45 (before: #/p/46). Same for top-right (before 46), bottom-left (before 42), and the reverse switch 60x160 -> 1440x160 from bottom-right (before 46).",
+  "#18: 390x844, #/p/45: drag from the left-bottom corner +40px (15 steps) and +8px, and left-top +40px, mouse and touch -> stays #/p/45 (before: #/p/44). A backward drag past the middle of the visible page (e.g. +220px or +300px in 15 steps) still turns to #/p/44; a left corner click still turns to #/p/44.",
+  "#15 unchanged: 1440x160 hover a corner then one single-step move to the window centre -> #/p/45.",
+  "#11 unchanged: 1440x160 prev/next buttons and ArrowLeft/ArrowRight turn pages.",
+  "1440x900 and 390x844: hover preview appears and returns; corner click turns; a drag past the spine turns; a short drag returns; right-side behaviour at 390x844 unchanged.",
+  "A hash jump (location.hash = '#/p/80') still lands on #/p/80.",
+  "No browser console errors except the local-preview 404 for /_vercel/insights/script.js (pre-existing).",
+  "`cd web && npm test && npm run build` and `cd web && npm run lint` pass."
+ ],
+ "input_refs": [
+  "gh issue view 19 and gh issue view 18 --repo DomineYH/2026_databook (each has a triage comment with an agent brief)",
+  "/mnt/c/dev/2026_databook/.routing/evidence/ord-gh19-triage-r1.json and ord-gh18-triage-r1.json (reproduction steps, root cause, recommended_fix sketches)",
+  "triage scripts you may copy and adapt: /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh19-triage-r1/trial.js (Playwright MCP code), /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-triage-r1/repro2.cjs (playwright-core script; drop its runtime 'fix' injection)",
+  "web/src/Viewer.tsx onInit (stopMove wrapper, hovering flag, isPointOnCorners patch), settle(), PageFlipApi type",
+  "web/node_modules/page-flip/src/Flip/Flip.ts (stopMove, showCorner, getState, getDirectionByPoint), Render.ts (convertToPage, getRect)"
+ ],
+ "workspace": "/mnt/c/dev/2026_databook-wt/gh-18-19",
+ "input_version": "39944ce",
+ "read_scope": [
+  "repository:read"
+ ],
+ "write_scope": [
+  "web/src/Viewer.tsx",
+  "web/src/book.ts and web/src/book.test.ts (only if you extract the #18 threshold into a pure helper)",
+  "/mnt/c/dev/2026_databook-wt/gh-18-19/.routing/tasks/ord-gh18-19-impl-r1.report.json",
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-impl-r1/ (build output, scripts, screenshots)"
+ ],
+ "allowed_actions": [
+  "read/search files",
+  "edit files in write_scope",
+  "cd web && npm ci (only if web/node_modules is missing in the worktree)",
+  "cd web && npm test / npm run build / npm run lint",
+  "npx vite preview --port 4311 --strictPort (ONLY port 4311; another worker runs in parallel on 4312)",
+  "drive Chromium with the Playwright MCP tools (you own the MCP browser; the other worker uses its own headless browser)",
+  "git add / git commit on branch fix/issues-18-19 in the worktree"
+ ],
+ "testing_mode": "test_first (host-accepted; manual determination authorized by the user 2026-11-19 when approving the Wave 1 plan; Jev confidence 0.50/0.66)",
+ "constraints_and_local_discretion": [
+  "You are a WORKER executing this order. The repository CLAUDE.md describes the host/coordinator; its 'never write product code' and 'use herdr workers' rules apply to the host, not to you. Do not launch agents, subagents, herdr panes or workers.",
+  "Work only in /mnt/c/dev/2026_databook-wt/gh-18-19. Never edit the main checkout /mnt/c/dev/2026_databook.",
+  "test_first: BEFORE editing, build and preview the unchanged code and reproduce BOTH bugs with the acceptance steps above (record hashes). If either does not reproduce, STOP and report NEEDS_DECISION with what you observed.",
+  "Commit 1 (#19): in the existing controller.stopMove wrapper treat the fold as a preview when hovering is true OR controller.getState() === 'fold_corner'; for a preview with pos.x <= 0 call dropFold(flip) instead of page-flip's stopMove. Keep the hovering flag (on the #15 path showCorner sets state READ before calling stopMove). Add getState(): string to the controller type. Extend the existing comment by one line (#19). After this commit re-run the #19 and #15 checks.",
+  "Commit 2 (#18): in the same wrapper, when not hovering, the orientation is portrait, the fold direction is BACK (FlipDirection BACK = 1 in page-flip 2.0.7; verify in the source) and pos.x > -render.getRect().pageWidth / 2, call dropFold(flip) instead of stopMove. Add getDirection(): number to the getCalculation() type. Product rule (accepted by the owner): a backward drag on a single page turns only once the corner is past the middle of the visible page. You may put the threshold decision in a small pure helper in web/src/book.ts with a vitest test of the boundary if that keeps the wrapper readable; then write that test first and see it fail.",
+  "Keep the wrapper readable: one short comment per rule saying why. No other refactoring. Viewer.tsx is 315 lines; 300 is a review signal, not a limit.",
+  "Out of scope: hiding a preview left on screen at normal sizes, forward-drag behaviour on a single page, node_modules patches, new dependencies, test tooling, CSS.",
+  "Commit message: subject in plain English describing the user-visible fix, body explains why, 'Fixes #N' line, and end with these two lines exactly:\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01LPmFwaNXbmSn68nUJuz8gK\nDo not push, open PRs, comment on issues, or change labels.",
+  "Stop the preview server and close the browser when done.",
+  "Local discretion: exact code shape and wording within the design above."
+ ],
+ "verification_plan_ref": "/mnt/c/dev/2026_databook/.routing/tasks/gh-18.json#/verification_plan ; gh-19.json#/verification_plan",
+ "verification": [
+  "red: both bugs on unchanged code",
+  "green after each commit",
+  "repo-test: cd web && npm test && npm run build",
+  "repo-lint: cd web && npm run lint"
+ ],
+ "stop_conditions": [
+  "worktree HEAD is not 39944ce at start -> BLOCKED",
+  "a bug does not reproduce on unchanged code -> NEEDS_DECISION",
+  "the fix needs a change outside the stopMove wrapper/types (or the optional book.ts helper), or breaks an acceptance criterion -> NEEDS_DECISION",
+  "npm ci / build fails for environment reasons -> BLOCKED with the error"
+ ],
+ "deliverable": "Two commits on fix/issues-18-19 (#19 first), plus the report file /mnt/c/dev/2026_databook-wt/gh-18-19/.routing/tasks/ord-gh18-19-impl-r1.report.json (JSON: status RESULT_SUBMITTED|NEEDS_DECISION|BLOCKED, order_id, commits [sha+subject], files_changed, verification [check_id, command_or_steps, result, notes] including the red runs and before/after observations per viewport, not_run_with_reasons, open_issues, question). Do not commit the report. Then print as your final message exactly one line: `REPORT <status> .routing/tasks/ord-gh18-19-impl-r1.report.json`.",
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "pane_id": "w6:pC"
+}

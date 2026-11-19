@@ -1,0 +1,77 @@
+{
+ "task_id": "gh-10",
+ "order_id": "ord-gh10-repair-r1",
+ "order_revision": 1,
+ "role_id": "implementer",
+ "purpose": "repair",
+ "at_stage": "conditional_repair",
+ "run_when": "now",
+ "objective": "Fix the important review finding on PR #20: when the remembered element (e.g. a page link inside the book) is hidden by the time the zoom overlay closes, focus() does nothing and focus ends on body. Add ONE new commit on fix/issue-10 (do not amend 57702d1) and push it.",
+ "acceptance_criteria": [
+  "Open with the '⤢ 크게' button, close (Escape and the ✕ 닫기 button) -> focus on the '크게' button (as today).",
+  "Focus the page-number input, double-click a page, close (Escape and ✕) -> focus back on the page-number input (today: the '크게' button).",
+  "Focus another focusable control (e.g. the TOC button or next button), double-click a page, close -> focus back on that control.",
+  "Nothing focused (document.activeElement is body), double-click a page, close -> focus on the '크게' button.",
+  "If the remembered element is no longer in the document or disabled, fall back to the '크게' button.",
+  "The TOC overlay's focus behaviour, the #9 Tab trap, Escape, arrow keys and page turning are unchanged.",
+  "Checked at 1440x900 and 390x844. No console errors except the local-preview 404 for /_vercel/insights/script.js (pre-existing).",
+  "`cd web && npm test && npm run build` and `cd web && npm run lint` pass.",
+  "Reviewer scenario: 1440x900, go to #/p/3, focus a link inside the book's table of contents page, double-click the page, while zoom is open move to another spread (hash change to #/p/8, and separately ArrowRight before the double-click so the turn finishes under zoom), then close with Escape and with ✕ -> focus is on the '크게' button, not body.",
+  "A remembered page link that stays visible still regains focus."
+ ],
+ "input_refs": [
+  "review finding (read it): /mnt/c/dev/2026_databook/.routing/tasks/gh-10-artifacts/ord-gh10-review-r1.review.md",
+  "reviewer's browser script you may adapt: /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh10-review-r1/check.cjs",
+  "your previous report: /mnt/c/dev/2026_databook-wt/gh-10/.routing/tasks/ord-gh10-impl-r1.report.json",
+  "git show 57702d1"
+ ],
+ "workspace": "/mnt/c/dev/2026_databook-wt/gh-10",
+ "input_version": "57702d1",
+ "read_scope": [
+  "repository:read"
+ ],
+ "write_scope": [
+  "web/src/Viewer.tsx",
+  "/mnt/c/dev/2026_databook-wt/gh-10/.routing/tasks/ord-gh10-repair-r1.report.json",
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh10-repair-r1/"
+ ],
+ "allowed_actions": [
+  "read/search files",
+  "edit web/src/Viewer.tsx",
+  "cd web && npm ci (only if web/node_modules is missing in the worktree)",
+  "cd web && npm test / npm run build / npm run lint",
+  "npx vite preview --port 4312 --strictPort (ONLY port 4312; another worker runs in parallel on 4311)",
+  "drive a headless Chromium with a Node script using playwright-core: const { chromium } = require('/home/dominelinux/.npm/_npx/e41f203b7505f1fb/node_modules/playwright-core'); chromium.launch({ headless: true }). Put scripts under /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh10-impl-r1/. Do NOT use the Playwright MCP browser tools: the other worker owns that browser.",
+  "git add / git commit on branch fix/issue-10",
+  "git push origin fix/issue-10 (plain push, no force)"
+ ],
+ "testing_mode": "test_first (repair: reproduce the reviewer's scenario on 57702d1 first, then fix)",
+ "constraints_and_local_discretion": [
+  "You are a WORKER executing this order. The repository CLAUDE.md describes the host/coordinator; its 'never write product code' and 'use herdr workers' rules apply to the host, not to you. Do not launch agents, subagents, herdr panes or workers.",
+  "Work only in /mnt/c/dev/2026_databook-wt/gh-10. Never edit the main checkout /mnt/c/dev/2026_databook.",
+  "Keep the change small and in the existing places; one short comment saying why the element is captured in the handler. No other refactoring.",
+  "Out of scope: TOC overlay focus, #9 Tab trap, page-flip patches (another worker is changing the stopMove wrapper in parallel on another branch; do not touch onInit), new files, dependencies, test tooling, CSS.",
+  "Stop the preview server and close the browser when done.",
+  "Local discretion: exact code shape and wording within the design above.",
+  "First reproduce the reviewer's scenario on 57702d1 (focus ends on body). If it does not reproduce, STOP and report NEEDS_DECISION.",
+  "Fix design: in the close effect, after back.focus(), if document.activeElement !== back, focus the '크게' button. Keep the existing guard. One short comment line saying why (a hidden element, e.g. a link on a page turned away under zoom, silently refuses focus).",
+  "Commit message: subject in plain English, body explains why, 'Refs #10' line, and end with these two lines exactly:\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01LPmFwaNXbmSn68nUJuz8gK\nPush with a plain `git push`. Do not open PRs, comment on GitHub, or change labels."
+ ],
+ "verification_plan_ref": "/mnt/c/dev/2026_databook/.routing/tasks/gh-10.json#/verification_plan",
+ "verification": [
+  "red: criterion 2 on unchanged code",
+  "green: every acceptance criterion",
+  "repo-test: cd web && npm test && npm run build",
+  "repo-lint: cd web && npm run lint"
+ ],
+ "stop_conditions": [
+  "worktree HEAD is not 57702d1 at start -> BLOCKED",
+  "the scenario does not reproduce -> NEEDS_DECISION",
+  "push rejected -> BLOCKED with the error"
+ ],
+ "deliverable": "One new commit on fix/issue-10, pushed, plus the report /mnt/c/dev/2026_databook-wt/gh-10/.routing/tasks/ord-gh10-repair-r1.report.json (same JSON shape as before, including the red run of the reviewer scenario and all re-checked criteria). Do not commit the report. Then print exactly one line: `REPORT <status> .routing/tasks/ord-gh10-repair-r1.report.json`.",
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "pane_id": "w6:pD"
+}
