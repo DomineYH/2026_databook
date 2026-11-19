@@ -6,11 +6,16 @@ type PageFlipApi = {
   flipNext(): void
   flipPrev(): void
   turnToPage(index: number): void
+  getSettings(): Record<string, unknown>
+  update(): void
 }
 type FlipEvent = { data: unknown }
 type InitEvent = { data: { page: number } }
 // react-pageflip's typings mark every setting as required; we pass only the ones we change.
 const FlipBook = HTMLFlipBook as unknown as ComponentType<Record<string, unknown> & { children: ReactNode; ref: Ref<{ pageFlip(): PageFlipApi }> }>
+
+// page-flip picks its mode from width alone; a huge minWidth forces single pages, usePortrait=false forces spreads.
+const modeSettings = (spread: boolean) => ({ usePortrait: !spread, minWidth: spread ? 1 : 100000 })
 
 const STORAGE_KEY = 'databook:lastPage'
 const PAGES = Array.from({ length: PAGE_COUNT }, (_, i) => i + 1)
@@ -52,12 +57,19 @@ export default function Viewer() {
     localStorage.setItem(STORAGE_KEY, String(p))
   }, [])
 
-  // Fires on first load and after every remount (mode change); fresh <img>s need reveal() again.
   const onInit = useCallback((e: InitEvent) => {
     const p = e.data.page + 1
     reveal(p)
     history.replaceState(null, '', pageHash(p))
   }, [])
+
+  // page-flip reads settings only at init and never stops its render loop on unmount, so switch modes on the live instance.
+  useEffect(() => {
+    const flip = api()
+    if (!flip || spread === null) return
+    Object.assign(flip.getSettings(), modeSettings(spread))
+    flip.update()
+  }, [spread])
 
   useEffect(() => {
     const observer = new ResizeObserver(([entry]) => setSpread(isSpread(entry.contentRect.width, entry.contentRect.height)))
@@ -133,14 +145,13 @@ export default function Viewer() {
         <span className="chapter">{chapter?.title ?? ''}</span>
       </header>
 
-      <main className="stage" ref={stageRef} inert={overlayOpen}>
-        {/* page-flip picks its mode from width alone, so we decide and remount it (keeping the 쪽) when the mode changes:
-            a huge minWidth forces single-page mode, usePortrait={false} forces spreads. */}
+      {/* Mode class lives on the stage: page-flip adds its own class to .book, which a className change would wipe. */}
+      <main className={`stage ${spread ? 'spread' : 'single'}`} ref={stageRef} inert={overlayOpen}>
         {spread !== null && (
-          <FlipBook key={spread ? 'spread' : 'single'} ref={bookRef} className={`book ${spread ? 'spread' : 'single'}`}
-            width={800} height={1132} size="stretch" autoSize={false}
-            minWidth={spread ? 1 : 100000} maxWidth={1000} minHeight={1} maxHeight={1415}
-            showCover usePortrait={!spread} mobileScrollSupport={false} disableFlipByClick clickEventForward
+          <FlipBook ref={bookRef} className="book"
+            width={800} height={1132} size="stretch" autoSize={false} {...modeSettings(spread)}
+            maxWidth={1000} minHeight={1} maxHeight={1415}
+            showCover mobileScrollSupport={false} disableFlipByClick clickEventForward
             maxShadowOpacity={0.4} flippingTime={600} startPage={page - 1}
             onFlip={onFlip} onInit={onInit}>
             {pages}

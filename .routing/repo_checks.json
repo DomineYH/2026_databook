@@ -10,7 +10,7 @@
     "lint"
   ],
   "commands": {
-    "test": "cd web && npm test",
+    "test": "cd web && npm test && npm run build",
     "lint": "cd web && npm run lint"
   },
   "branch_protection": {

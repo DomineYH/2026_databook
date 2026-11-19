@@ -46,8 +46,8 @@ html, body, #root { margin: 0; height: 100%; overflow: hidden; }
 
 .stage { flex: 1; min-height: 0; display: grid; place-items: center; padding: 8px; container-type: size; }
 /* 책 폭 = 무대에 들어가는 가장 큰 크기 (쪽 비율 1600:2265) */
-.book.spread { width: min(100cqw, 100cqh * 1.4128); aspect-ratio: 3200 / 2265; }
-.book.single { width: min(100cqw, 100cqh * 0.7064); aspect-ratio: 1600 / 2265; }
+.stage.spread .book { width: min(100cqw, 100cqh * 1.4128); aspect-ratio: 3200 / 2265; }
+.stage.single .book { width: min(100cqw, 100cqh * 0.7064); aspect-ratio: 1600 / 2265; }
 .book > .stf__wrapper { height: 100%; } /* autoSize={false}: page-flip no longer sizes the wrapper */
 /* page-flip writes min-width/min-height inline from its settings (huge in single mode). */
 .book { min-width: 0 !important; min-height: 0 !important; }
