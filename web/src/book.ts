@@ -32,6 +32,11 @@ export function spreadOf(page: number, count = PAGE_COUNT): number[] {
   return left + 1 <= count ? [left, left + 1] : [left]
 }
 
+/** 펼침면 비율(두 쪽 폭 / 높이). 무대가 이보다 좁으면 한 쪽 보기가 각 쪽을 더 크게 보여준다. */
+export const SPREAD_RATIO = (1600 * 2) / 2265
+
+export const isSpread = (stageWidth: number, stageHeight: number) => stageWidth / stageHeight >= SPREAD_RATIO
+
 export const pageSrc = (page: number) => `/pages/${String(page).padStart(3, '0')}.webp`
 
 export function pageAlt(page: number): string {
