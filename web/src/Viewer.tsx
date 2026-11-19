@@ -1,5 +1,6 @@
 import HTMLFlipBook from 'react-pageflip'
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode, type Ref } from 'react'
+import ZoomView from './ZoomView'
 import { CHAPTERS, LINKS, PAGE_COUNT, TITLE, chapterOf, isSpread, keepAnchor, nextTrapIndex, pageAlt, pageHash, pageSrc, parsePageHash, spreadOf } from './book'
 
 type PageFlipApi = {
@@ -323,12 +324,7 @@ export default function Viewer() {
         </div>
       )}
 
-      {zoomed && (
-        <div className="overlay zoom" role="dialog" aria-modal="true" aria-label="크게 보기">
-          <button className="close" onClick={() => setZoomed(null)} autoFocus>✕ 닫기</button>
-          {zoomed.map((p) => <img key={p} src={pageSrc(p)} alt={pageAlt(p)} />)}
-        </div>
-      )}
+      {zoomed && <ZoomView pages={zoomed} onClose={() => setZoomed(null)} />}
     </div>
   )
 }
