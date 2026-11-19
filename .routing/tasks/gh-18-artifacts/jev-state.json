@@ -1,0 +1,30 @@
+{
+ "task": "Implement GitHub issue #18 in the static React ebook viewer: in single-page (portrait) view, e.g. 390x844, a short drag from the left edge of the page (8-40px) turns BACK a page on release instead of returning. Root cause confirmed in a browser: page-flip 2.0.7 stopMove completes a turn when the fold position x <= 0, and in portrait every backward fold on screen has x <= 0. Fix in the existing controller.stopMove wrapper in Viewer.tsx onInit: when not hovering, orientation is portrait, the fold direction is BACK and pos.x > -pageWidth/2, call the existing dropFold(flip) instead of page-flip's stopMove, so a backward drag turns only once past the middle of the visible page. Add getDirection to the getCalculation type. No new files or dependencies; do not patch node_modules.",
+ "context": {
+  "changed_paths": [
+   "web/src/Viewer.tsx"
+  ],
+  "observed_behavior": "Reproduced on main 39944ce at 390x844: left-bottom +40px drag -> #/p/45 to #/p/44, 3/3, mouse and touch, 1 and 15 steps; +8px also turns. stopMove saw direction=BACK, pos.x=-47.9. 1440x900 short drags return. A runtime-injected version of the fix kept short drags on #/p/45 while +220px/+300px drags, corner clicks and forward behaviour were unchanged.",
+  "contracts": "No external API. page-flip 2.0.7 source vendored in web/node_modules (pinned in web/package-lock.json). Static site, no auth, no persisted data.",
+  "test_setup": "vitest pure-function tests only (web/src/book.ts); no jsdom or e2e. Verification is a scripted Chromium (Playwright) check against `vite preview`, as for PR #14 and PR #17. CI runs `cd web && npm test && npm run build` and `cd web && npm run lint`; main 39944ce passed CI.",
+  "verified_flags": {
+   "security_sensitive": false,
+   "data_sensitive": false,
+   "shared_core_change": false,
+   "production_impact": false,
+   "minor_scope_verified": false,
+   "active_incident_related_to_task": false,
+   "touches_ui": true,
+   "touches_external_api": false,
+   "needs_design": false,
+   "require_independent_review": true
+  },
+  "evidence_gaps": [],
+  "consumers": "Viewer.tsx is the app's single UI component, imported only by web/src/main.tsx; nothing is published as a library.",
+  "testing_facts": "The defect has a faithful reproducer only in a real browser (scripts exist from triage: repro2.cjs). page-flip needs a real DOM; an optional pure helper in book.ts could unit-test the half-page threshold. No test infrastructure is to be added."
+ },
+ "testing_evidence": {
+  "test_seam": "substantial_setup: no unit seam for the Viewer component; scripted browser check",
+  "existing_checks": "main 39944ce CI passed"
+ }
+}

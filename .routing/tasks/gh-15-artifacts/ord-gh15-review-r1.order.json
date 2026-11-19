@@ -1,0 +1,50 @@
+{
+ "task_id": "gh-15",
+ "order_id": "ord-gh15-review-r1",
+ "order_revision": 1,
+ "role_id": "task-verifier",
+ "purpose": "independent_review",
+ "at_stage": "independent_review_and_ci",
+ "run_when": "now",
+ "objective": "Independently review commit 5915643 on branch fix/issue-15 (diff aca4937..5915643) that fixes GitHub issue #15: in a very low window a hover corner preview turned the page when the mouse left the corner.",
+ "acceptance_criteria": [
+  "1440x160, #/p/45: hover any corner then move the mouse out in one step -> the page does not change",
+  "1440x900 and 390x844: hover preview, corner click, drag past the spine (turns) and short drag (returns) behave exactly as before",
+  "1440x160: prev/next buttons and arrow keys still turn pages (#11)",
+  "No browser console errors; `cd web && npm test && npm run build` and `cd web && npm run lint` pass"
+ ],
+ "input_refs": [
+  "git diff aca4937..5915643 (one file: web/src/Viewer.tsx)",
+  "gh issue view 15 --repo DomineYH/2026_databook (issue + triage comment)",
+  "implementer report (claims, not proof): /mnt/c/dev/2026_databook-wt/gh-15/.routing/tasks/ord-gh15-impl-r1.report.json",
+  "triage evidence (claims from source reading): /mnt/c/dev/2026_databook/.routing/evidence/ord-gh15-triage-r1.json",
+  "web/node_modules/page-flip/src/Flip/Flip.ts (showCorner, stopMove, animateFlippingTo, and every caller of stopMove), web/node_modules/page-flip/src/PageFlip.ts (userMove/userStop), web/node_modules/page-flip/src/UI/UI.ts"
+ ],
+ "workspace": "/mnt/c/dev/2026_databook-wt/gh-15",
+ "input_version": "5915643",
+ "read_scope": ["repository:read-only"],
+ "write_scope": [],
+ "allowed_actions": [
+  "read/search files",
+  "git show/diff/log (read-only)",
+  "gh issue view / gh pr view (read-only)",
+  "cd web && npm test / npm run lint (optional, read-only effect)"
+ ],
+ "constraints_and_local_discretion": [
+  "Read-only: do not edit, stage, commit, push, comment on GitHub. The repository CLAUDE.md/AGENTS.md describe the host/coordinator, not you; do not start agents or panes.",
+  "Verdict rules: PASS = no important findings and every acceptance criterion met by code inspection and/or the implementer's browser evidence. FAIL = at least one important finding (a concrete defect or unmet criterion). BLOCKED only if you cannot read the inputs. Do NOT return BLOCKED merely because you cannot run a browser: judge browser criteria from code plus the report, and if you doubt that evidence, name the exact extra browser check the host should run.",
+  "Questions to answer: (1) Is `hovering` true exactly when stopMove is called from inside showCorner, and false for drag release (userStop), the app's settle(), and any other stopMove caller? Any async/animation path where hovering is stale? (2) Can the new branch fire at normal sizes (1440x900, 390x844), e.g. a backward (left-corner) hover preview whose position is in a different coordinate frame, or LimitPointToCircle clamping? (3) Is dropFold the right cleanup here: does it leave page-flip state (FlippingState, calc, animation, hard/soft page render) consistent so the next hover/click/drag works? (4) Does the comment state the reason accurately? (5) Any regression to #11 (flipNext/flipPrev wrapper) or the isPointOnCorners patch?",
+  "Report only actionable findings with file:line and a concrete failure scenario; mark pre-existing issues as pre_existing (they do not fail the review). Viewer.tsx is ~315 lines (300 is a review signal, not a limit)."
+ ],
+ "verification_plan_ref": "/mnt/c/dev/2026_databook/.routing/tasks/gh-15.json#/verification_plan",
+ "verification": ["review of fixed diff aca4937..5915643", "optional npm test / lint"],
+ "stop_conditions": [
+  "HEAD of the worktree is not 5915643 (stale input) -> BLOCKED",
+  "you would need to write anything to decide -> BLOCKED"
+ ],
+ "deliverable": "Final message only (no files): a block starting with the line `REVIEW_BEGIN` and ending with `REVIEW_END`, containing: verdict PASS|FAIL|BLOCKED, reviewed_revision, findings [severity important|nit|pre_existing, file:line, summary, failure_scenario], criteria_check (each acceptance criterion -> met/unmet/unverifiable + evidence), answers to questions 1-5, checks_run with results. After REVIEW_END print exactly: `REPORT RESULT_SUBMITTED review` (or `REPORT BLOCKED review`).",
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "pane_id": "w6:p9"
+}

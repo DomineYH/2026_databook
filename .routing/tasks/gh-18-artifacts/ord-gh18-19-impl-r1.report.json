@@ -1,0 +1,269 @@
+{
+ "status": "RESULT_SUBMITTED",
+ "order_id": "ord-gh18-19-impl-r1",
+ "commits": [
+  {
+   "sha": "d33591e",
+   "subject": "Keep the page when the window switches modes during a corner preview",
+   "fixes": "#19"
+  },
+  {
+   "sha": "e2b53b7",
+   "subject": "Stop a short backward drag on a single page from turning back",
+   "fixes": "#18"
+  }
+ ],
+ "files_changed": [
+  "web/src/Viewer.tsx"
+ ],
+ "verification": [
+  {
+   "check_id": "red",
+   "command_or_steps": "HEAD 39944ce, vite build to /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-impl-r1/dist, vite preview :4311, node /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-impl-r1/verify.cjs all (headless Chromium via playwright-core)",
+   "result": "pass (both bugs reproduced)",
+   "notes": "#19: 1440x160->60x160 br #/p/46, tr #/p/46, bl #/p/42; 60x160->1440x160 br #/p/46. #18 at 390x844: mouse lb +40/15 steps, lb +8, lt +40, touch lb +40, touch lt +40 all #/p/44. 23/33 then (the #11 'failure' in the red run was a wrong expectation in my script for spreads: 45->prev 42->next 44 is correct; regex fixed before commit 1)."
+  },
+  {
+   "check_id": "green-commit1",
+   "command_or_steps": "rebuild, node verify.cjs all",
+   "result": "pass for #19/#15/#11/normal; #18 still red as expected",
+   "notes": "28/33; only the 5 short-backward-drag #18 checks failed"
+  },
+  {
+   "check_id": "green-commit2",
+   "command_or_steps": "rebuild, node verify.cjs all",
+   "result": "pass",
+   "notes": "33/33; console errors only the pre-existing 404 for /_vercel/insights/script.js"
+  },
+  {
+   "check_id": "repo-test",
+   "command_or_steps": "cd web && npm test && npm run build",
+   "result": "pass",
+   "notes": "21 tests passed; tsc -b + vite build ok"
+  },
+  {
+   "check_id": "repo-lint",
+   "command_or_steps": "cd web && npm run lint",
+   "result": "pass",
+   "notes": "oxlint exit 0, no findings"
+  }
+ ],
+ "observations": [
+  {
+   "check": "[19] 1440x160->60x160 br",
+   "red_39944ce": "#/p/46",
+   "after_commit1": "#/p/45",
+   "after_commit2": "#/p/45"
+  },
+  {
+   "check": "[19] 1440x160->60x160 tr",
+   "red_39944ce": "#/p/46",
+   "after_commit1": "#/p/45",
+   "after_commit2": "#/p/45"
+  },
+  {
+   "check": "[19] 1440x160->60x160 bl",
+   "red_39944ce": "#/p/42",
+   "after_commit1": "#/p/45",
+   "after_commit2": "#/p/45"
+  },
+  {
+   "check": "[19] 60x160->1440x160 br",
+   "red_39944ce": "#/p/46",
+   "after_commit1": "#/p/45",
+   "after_commit2": "#/p/45"
+  },
+  {
+   "check": "[18] 390x844 mouse lb +40 15 steps",
+   "red_39944ce": "#/p/44",
+   "after_commit1": "#/p/44",
+   "after_commit2": "#/p/45"
+  },
+  {
+   "check": "[18] 390x844 mouse lb +8",
+   "red_39944ce": "#/p/44",
+   "after_commit1": "#/p/44",
+   "after_commit2": "#/p/45"
+  },
+  {
+   "check": "[18] 390x844 mouse lt +40 15 steps",
+   "red_39944ce": "#/p/44",
+   "after_commit1": "#/p/44",
+   "after_commit2": "#/p/45"
+  },
+  {
+   "check": "[18] 390x844 touch lb +40",
+   "red_39944ce": "#/p/44",
+   "after_commit1": "#/p/44",
+   "after_commit2": "#/p/45"
+  },
+  {
+   "check": "[18] 390x844 touch lt +40",
+   "red_39944ce": "#/p/44",
+   "after_commit1": "#/p/44",
+   "after_commit2": "#/p/45"
+  },
+  {
+   "check": "[18] 390x844 lb +220 15 steps",
+   "red_39944ce": "#/p/44",
+   "after_commit1": "#/p/44",
+   "after_commit2": "#/p/44"
+  },
+  {
+   "check": "[18] 390x844 lb +300 15 steps",
+   "red_39944ce": "#/p/44",
+   "after_commit1": "#/p/44",
+   "after_commit2": "#/p/44"
+  },
+  {
+   "check": "[18] 390x844 touch lb +300",
+   "red_39944ce": "#/p/44",
+   "after_commit1": "#/p/44",
+   "after_commit2": "#/p/44"
+  },
+  {
+   "check": "[18] 390x844 lb click",
+   "red_39944ce": "#/p/44",
+   "after_commit1": "#/p/44",
+   "after_commit2": "#/p/44"
+  },
+  {
+   "check": "[18] 390x844 lt click",
+   "red_39944ce": "#/p/44",
+   "after_commit1": "#/p/44",
+   "after_commit2": "#/p/44"
+  },
+  {
+   "check": "[15] 1440x160 hover br -> centre",
+   "red_39944ce": "#/p/45",
+   "after_commit1": "#/p/45",
+   "after_commit2": "#/p/45"
+  },
+  {
+   "check": "[15] 1440x160 hover tr -> centre",
+   "red_39944ce": "#/p/45",
+   "after_commit1": "#/p/45",
+   "after_commit2": "#/p/45"
+  },
+  {
+   "check": "[15] 1440x160 hover bl -> centre",
+   "red_39944ce": "#/p/45",
+   "after_commit1": "#/p/45",
+   "after_commit2": "#/p/45"
+  },
+  {
+   "check": "[15] 1440x160 hover tl -> centre",
+   "red_39944ce": "#/p/45",
+   "after_commit1": "#/p/45",
+   "after_commit2": "#/p/45"
+  },
+  {
+   "check": "[11] 1440x160 buttons+keys",
+   "red_39944ce": "prev:#/p/42 next:#/p/44 ArrowLeft:#/p/42 ArrowRight:#/p/44",
+   "after_commit1": "prev:#/p/42 next:#/p/44 ArrowLeft:#/p/42 ArrowRight:#/p/44",
+   "after_commit2": "prev:#/p/42 next:#/p/44 ArrowLeft:#/p/42 ArrowRight:#/p/44"
+  },
+  {
+   "check": "[normal] 1440x900 hover br",
+   "red_39944ce": "fold_corner->read #/p/45",
+   "after_commit1": "fold_corner->read #/p/45",
+   "after_commit2": "fold_corner->read #/p/45"
+  },
+  {
+   "check": "[normal] 1440x900 hover bl",
+   "red_39944ce": "fold_corner->read #/p/45",
+   "after_commit1": "fold_corner->read #/p/45",
+   "after_commit2": "fold_corner->read #/p/45"
+  },
+  {
+   "check": "[normal] 1440x900 br click",
+   "red_39944ce": "#/p/46",
+   "after_commit1": "#/p/46",
+   "after_commit2": "#/p/46"
+  },
+  {
+   "check": "[normal] 1440x900 bl click",
+   "red_39944ce": "#/p/42",
+   "after_commit1": "#/p/42",
+   "after_commit2": "#/p/42"
+  },
+  {
+   "check": "[normal] 1440x900 br drag past spine -800",
+   "red_39944ce": "#/p/46",
+   "after_commit1": "#/p/46",
+   "after_commit2": "#/p/46"
+  },
+  {
+   "check": "[normal] 1440x900 bl drag past spine +700",
+   "red_39944ce": "#/p/42",
+   "after_commit1": "#/p/42",
+   "after_commit2": "#/p/42"
+  },
+  {
+   "check": "[normal] 1440x900 br short drag -40",
+   "red_39944ce": "#/p/45",
+   "after_commit1": "#/p/45",
+   "after_commit2": "#/p/45"
+  },
+  {
+   "check": "[normal] 1440x900 bl short drag +40",
+   "red_39944ce": "#/p/45",
+   "after_commit1": "#/p/45",
+   "after_commit2": "#/p/45"
+  },
+  {
+   "check": "[normal] 390x844 hover br",
+   "red_39944ce": "fold_corner->read #/p/45",
+   "after_commit1": "fold_corner->read #/p/45",
+   "after_commit2": "fold_corner->read #/p/45"
+  },
+  {
+   "check": "[normal] 390x844 br click",
+   "red_39944ce": "#/p/46",
+   "after_commit1": "#/p/46",
+   "after_commit2": "#/p/46"
+  },
+  {
+   "check": "[normal] 390x844 br short drag -40",
+   "red_39944ce": "#/p/45",
+   "after_commit1": "#/p/45",
+   "after_commit2": "#/p/45"
+  },
+  {
+   "check": "[normal] 390x844 br drag past spine -420",
+   "red_39944ce": "#/p/46",
+   "after_commit1": "#/p/46",
+   "after_commit2": "#/p/46"
+  },
+  {
+   "check": "[normal] 1440x900 hash jump",
+   "red_39944ce": "#/p/80",
+   "after_commit1": "#/p/80",
+   "after_commit2": "#/p/80"
+  },
+  {
+   "check": "[normal] 390x844 hash jump",
+   "red_39944ce": "#/p/80",
+   "after_commit1": "#/p/80",
+   "after_commit2": "#/p/80"
+  }
+ ],
+ "artifacts": {
+  "script": "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-impl-r1/verify.cjs",
+  "results": [
+   "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-impl-r1/results-red.json",
+   "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-impl-r1/results-c1.json",
+   "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-impl-r1/results-c2.json"
+  ]
+ },
+ "not_run_with_reasons": [
+  "Playwright MCP browser not used: I adapted the triage playwright-core script (repro2.cjs, allowed by the order) into one headless script so all checks run identically for red/green.",
+  "No book.ts helper/vitest test: kept the #18 threshold inline in the wrapper (order made the helper optional); verified by the browser checks.",
+  "npm ci was run because web/node_modules was missing in the worktree (allowed)."
+ ],
+ "open_issues": [
+  "Hover previews left on screen at normal sizes (out of scope) unchanged.",
+  "+150px backward drag at 390x844 (under half a page) now returns instead of turning, by the accepted product rule; not separately scripted."
+ ],
+ "question": null
+}

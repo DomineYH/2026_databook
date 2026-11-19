@@ -1,0 +1,75 @@
+{
+  "status": "RESULT_SUBMITTED",
+  "order_id": "ord-gh9-11-impl-r1",
+  "commits": [
+    { "sha": "6488d90", "subject": "Keep Tab inside the open overlay when the browser lacks inert", "issue": 9 },
+    { "sha": "03f9c62", "subject": "Let buttons and arrow keys turn pages in a very short window", "issue": 11 }
+  ],
+  "files_changed": ["web/src/book.ts", "web/src/book.test.ts", "web/src/Viewer.tsx"],
+  "verification": [
+    {
+      "check_id": "gh9-unit-red",
+      "command_or_steps": "cd web && npx vitest run src/book.test.ts (tests added; nextTrapIndex stubbed as `=> index`)",
+      "result": "fail (as intended)",
+      "notes": "3 of 4 nextTrapIndex tests failed with AssertionError (e.g. 'expected -1 to be +0' for index -1 forward); single-element case passed by coincidence of the stub. 18 other tests passed. No syntax/environment errors."
+    },
+    {
+      "check_id": "gh9-unit-green",
+      "command_or_steps": "cd web && npx vitest run src/book.test.ts",
+      "result": "pass",
+      "notes": "21/21"
+    },
+    {
+      "check_id": "gh9-manual",
+      "command_or_steps": "preview 1440x900, `delete HTMLElement.prototype.inert`, open TOC, remove [inert], 18x Tab then 18x Shift+Tab via Playwright keyboard; then Esc; open zoom, remove [inert], Tab/Shift+Tab x5, ArrowRight, Esc; ArrowRight/ArrowLeft after close; then real reload (inert native) + TOC + 16x Tab recording event.defaultPrevented",
+      "result": "pass",
+      "notes": "TOC: focus cycled through all 15 links both directions incl. wrap (13장 -> 표지, 표지 -> 13장 backward), never left .overlay. Zoom: focus stayed on '✕ 닫기' for every press. ArrowRight ignored while zoom open. Esc closed each overlay and focus returned to '목차 열기' / '크게 보기'. After close ArrowRight 45->46, ArrowLeft 46->44 (spread). With native inert: defaultPrevented false on all 16 Tabs, i.e. the new branch did not run (one Tab went to browser chrome, normal native behaviour)."
+    },
+    {
+      "check_id": "gh11-browser-before",
+      "command_or_steps": "preview 1440x160 at #/p/45 on the #9 commit (no #11 change): click ▶, ArrowRight, click ◀, ArrowLeft",
+      "result": "bug reproduced",
+      "notes": "Book box 56.5x39.98. ▶ and ArrowRight: stayed on 45 (no turn). ◀ and ArrowLeft did turn (45->42->40), so at this size only the forward direction was blocked in Chromium."
+    },
+    {
+      "check_id": "gh11-browser-after",
+      "command_or_steps": "preview at 1440x160, 1440x900, 390x844 from #/p/45: ▶, ArrowRight, ◀, ArrowLeft, click in centre of visible (right-hand) page; corner hover then leave; bottom-right and bottom-left corner clicks",
+      "result": "pass",
+      "notes": "1440x160 (spread): 45->46->48->46->44, centre click stays 44. 1440x900 (spread): same sequence, centre click stays. 390x844 (single): 45->46->47->46->45, centre click stays. Corner clicks turn forward/back at all three sizes. Hover fold shown at all sizes; at 1440x900 and 390x844 leaving the hover does not turn the page."
+    },
+    {
+      "check_id": "gh11-hover-leave-1440x160-baseline",
+      "command_or_steps": "Same hover-corner-then-leave gesture at 1440x160 on the #9 commit WITHOUT the #11 change (3 runs)",
+      "result": "pre-existing behaviour",
+      "notes": "At 1440x160 leaving a hover preview by moving across the 40px-tall book turns 45->46, identically with and without the #11 wrapper (3/3 runs on the baseline). Not caused by this change; see open_issues."
+    },
+    {
+      "check_id": "console",
+      "command_or_steps": "Playwright console errors across all runs + pageerror listener on final run",
+      "result": "pass (app)",
+      "notes": "Only error: 404 for /_vercel/insights/script.js once per page load (Vercel analytics script is absent under local `vite preview`; unrelated, pre-existing). No app errors or page exceptions."
+    },
+    {
+      "check_id": "repo-test",
+      "command_or_steps": "cd web && npm test && npm run build",
+      "result": "pass",
+      "notes": "21/21 tests; tsc -b + vite build succeeded"
+    },
+    {
+      "check_id": "repo-lint",
+      "command_or_steps": "cd web && npm run lint",
+      "result": "pass",
+      "notes": "oxlint exit 0, no output"
+    }
+  ],
+  "not_run_with_reasons": [
+    "Real Safari <15.5 / Chrome <102 / Firefox <112 device check: out of scope per issue #9 triage (inert absence simulated in Chromium only).",
+    "Touch swipe at 1440x160: not exercised; it uses the same flipNext/flipPrev path that was verified."
+  ],
+  "open_issues": [
+    "web/src/Viewer.tsx is now 305 lines (was 285), just over the 300-line review signal.",
+    "Pre-existing, not addressed (out of order scope): at 1440x160 a corner hover preview completes as a page turn when the pointer leaves across the tiny book. Same on baseline without the #11 change.",
+    "In the 'before' reproduction only next was blocked at 1440x160; prev worked in Chromium. The wrapper covers both anyway, as the order specified."
+  ],
+  "question": null
+}

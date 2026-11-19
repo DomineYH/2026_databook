@@ -1,0 +1,30 @@
+{
+ "note": "Host-executed evidence for revision 03f9c62 (host session, not the implementer). Treat as evidence with provenance, not as a verdict.",
+ "results": [
+  {
+   "check_id": "host-rerun",
+   "commands": [
+    "cd web && npm test",
+    "cd web && npm run lint"
+   ],
+   "revision": "03f9c62",
+   "result": "pass",
+   "label": "newly_executed"
+  },
+  {
+   "check_id": "host-browser",
+   "source": "host session (not the author), Playwright on vite preview of 03f9c62",
+   "revision": "03f9c62",
+   "result": "pass: 1440x160/1440x900 45>46>48>46>44, centre click no turn; 390x844 45>46>47>46>45, centre no turn; no inert: TOC 40 Tabs never left overlay (15 distinct), zoom 5 never left, Esc returns focus; native inert: 0/5 Tabs prevented, control with inert deleted 3/3 prevented; only 404 /_vercel/insights/script.js (local preview)",
+   "label": "newly_executed"
+  },
+  {
+   "check_id": "ci",
+   "source": "gh run 44459123272",
+   "revision": "03f9c62",
+   "result": "test pass, lint pass",
+   "label": "newly_executed"
+  }
+ ],
+ "host_script_summary": "Playwright on `vite preview` of a 03f9c62 build. Flip sequence per viewport from #/p/45: click 다음 쪽, ArrowRight, click 이전 쪽, ArrowLeft, click at 75% width / 50% height of main (page centre). Trap: delete HTMLElement.prototype.inert, open 목차, strip [inert], 20x Tab + 20x Shift+Tab checking document.activeElement.closest('.overlay'); Esc; same for 크게 보기 with 5 presses; then reload with native inert and count defaultPrevented Tabs (0/5), control after deleting inert (3/3)."
+}

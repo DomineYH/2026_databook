@@ -1,0 +1,66 @@
+{
+ "task_id": "gh-18,gh-19",
+ "order_id": "ord-gh18-19-review-r2",
+ "order_revision": 1,
+ "role_id": "task-verifier",
+ "purpose": "independent_review",
+ "at_stage": "independent_review_and_ci",
+ "run_when": "now",
+ "objective": "Re-review PR #21 after the repair commit fcae269 and the merge of main (02886df, which brings in #10's zoom-focus change in another part of Viewer.tsx). Recheck your important finding (short drag released during a key/button backward turn) and your nit, and review the delta e2b53b7..fcae269 and the merge for new defects. Criteria already judged met need only a delta assessment.",
+ "acceptance_criteria": [
+  "#19: 1440x160, #/p/45, one single-step mouse move onto the bottom-right book corner (3px inside), wait 300ms, no further mouse event, setViewportSize 60x160 -> hash stays #/p/45 (before: #/p/46). Same for top-right (before 46), bottom-left (before 42), and the reverse switch 60x160 -> 1440x160 from bottom-right (before 46).",
+  "#18: 390x844, #/p/45: drag from the left-bottom corner +40px (15 steps) and +8px, and left-top +40px, mouse and touch -> stays #/p/45 (before: #/p/44). A backward drag past the middle of the visible page (e.g. +220px or +300px in 15 steps) still turns to #/p/44; a left corner click still turns to #/p/44.",
+  "#15 unchanged: 1440x160 hover a corner then one single-step move to the window centre -> #/p/45.",
+  "#11 unchanged: 1440x160 prev/next buttons and ArrowLeft/ArrowRight turn pages.",
+  "1440x900 and 390x844: hover preview appears and returns; corner click turns; a drag past the spine turns; a short drag returns; right-side behaviour at 390x844 unchanged.",
+  "A hash jump (location.hash = '#/p/80') still lands on #/p/80.",
+  "No browser console errors except the local-preview 404 for /_vercel/insights/script.js (pre-existing).",
+  "`cd web && npm test && npm run build` and `cd web && npm run lint` pass.",
+  "Reviewer overlap scenario: 390x844, #/p/45, pointer 8px inside the bottom-left corner, press ArrowLeft, immediately press, drag right 12px and release while the key turn is animating -> ends on #/p/44 (same as base 39944ce), 3/3.",
+  "Follow-up: right after that short release, press again and make the first move toward the right side -> no turn to #/p/46 while the mouse is still held (no stale callback consuming the new fold).",
+  "An isolated short backward drag (no animation in flight) still stays on #/p/45."
+ ],
+ "input_refs": [
+  "git diff e2b53b7..fcae269 (the repair)",
+  "git diff ba15ef8..02886df (what this PR now adds on top of current main)",
+  "your previous review: /mnt/c/dev/2026_databook/.routing/tasks/gh-18-artifacts/ord-gh18-19-review-r1.review.md",
+  "repair report (claims, not proof): /mnt/c/dev/2026_databook-wt/gh-18-19/.routing/tasks/ord-gh18-19-repair-r1.report.json",
+  "gh pr view 21 (CI run 44504262895 passed on 02886df)",
+  "web/node_modules/page-flip/src/Render/Render.ts finishAnimation, Flip.ts fold() and the animation callback"
+ ],
+ "workspace": "/mnt/c/dev/2026_databook-wt/gh-18-19",
+ "input_version": "02886df",
+ "read_scope": [
+  "repository:read-only"
+ ],
+ "write_scope": [
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-review-r2/"
+ ],
+ "allowed_actions": [
+  "read/search files",
+  "git show/diff/log (read-only)",
+  "gh issue view / gh pr view / gh pr checks (read-only)",
+  "cd web && npm test / npm run lint",
+  "optional: npx vite build --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-review-r2/dist and npx vite preview --port 4314 --strictPort --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-review-r2/dist, driven by a Node script with require('/home/dominelinux/.npm/_npx/e41f203b7505f1fb/node_modules/playwright-core') chromium.launch({headless:true}) (port 4314 only; stop the server when done). The implementer's script may be reused if found under /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-impl-r1/."
+ ],
+ "constraints_and_local_discretion": [
+  "Read-only on the repository: do not edit, stage, commit, push, or comment on GitHub. AGENTS.md/CLAUDE.md describe the host/coordinator, not you; do not start agents or panes.",
+  "Verdict rules: PASS = no important findings and every acceptance criterion met by code inspection and/or browser evidence. FAIL = at least one important finding (a concrete defect or unmet criterion caused by this change). BLOCKED only if you cannot read the inputs. Pre-existing issues and the local-preview 404 for /_vercel/insights/script.js are pre_existing and never fail the review. Do not return BLOCKED merely because you did not run a browser.",
+  "Product rule accepted by the owner (do not report it as a defect): on a single page a backward drag turns only once the corner is past the middle of the visible page.",
+  "Repair-specific questions: (1) Does the overlap scenario now reach #/p/44 like base, and is no stale animation callback left (the follow-up forward fold)? (2) Can render.finishAnimation() in the shortBack branch complete something it should not: e.g. an isolated short drag (no animation), a settle() call, a forward animation, or the drag's own fold? Does finishing a turn while a user fold reuses its calculation leave page-flip state consistent before dropFold? (3) Does the merge of main (#10) interact with this change? (4) Is the nit fixed in the code comment (the old commit message wording is accepted as is)?",
+  "Report only actionable findings with file:line and a concrete failure scenario."
+ ],
+ "verification": [
+  "review of fixed diff 39944ce..e2b53b7",
+  "npm test / lint",
+  "optional browser check"
+ ],
+ "stop_conditions": [
+  "worktree HEAD is not 02886df -> BLOCKED"
+ ],
+ "deliverable": "Write your review to /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-review-r2/review.md as a block starting with the line `REVIEW_BEGIN` and ending with `REVIEW_END`, containing: verdict PASS|FAIL|BLOCKED, reviewed_revision, findings [severity important|nit|pre_existing, file:line, summary, failure_scenario], criteria_check (each acceptance criterion -> met/unmet/unverifiable + evidence), answers to the repair questions 1-4, checks_run with results. Then print as your final message exactly: `REPORT RESULT_SUBMITTED /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-review-r2/review.md` (or `REPORT BLOCKED <reason>`).",
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "pane_id": "w6:pF"
+}

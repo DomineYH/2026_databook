@@ -1,0 +1,74 @@
+{
+ "task_id": "gh-10",
+ "order_id": "ord-gh10-impl-r1",
+ "order_revision": 1,
+ "role_id": "implementer",
+ "purpose": "implementation",
+ "at_stage": "implementation",
+ "run_when": "now",
+ "objective": "Fix GitHub issue #10: closing the zoom overlay must return focus to the element that had it when the overlay was opened. One commit on branch fix/issue-10 in the worktree /mnt/c/dev/2026_databook-wt/gh-10.",
+ "acceptance_criteria": [
+  "Open with the '⤢ 크게' button, close (Escape and the ✕ 닫기 button) -> focus on the '크게' button (as today).",
+  "Focus the page-number input, double-click a page, close (Escape and ✕) -> focus back on the page-number input (today: the '크게' button).",
+  "Focus another focusable control (e.g. the TOC button or next button), double-click a page, close -> focus back on that control.",
+  "Nothing focused (document.activeElement is body), double-click a page, close -> focus on the '크게' button.",
+  "If the remembered element is no longer in the document or disabled, fall back to the '크게' button.",
+  "The TOC overlay's focus behaviour, the #9 Tab trap, Escape, arrow keys and page turning are unchanged.",
+  "Checked at 1440x900 and 390x844. No console errors except the local-preview 404 for /_vercel/insights/script.js (pre-existing).",
+  "`cd web && npm test && npm run build` and `cd web && npm run lint` pass."
+ ],
+ "input_refs": [
+  "gh issue view 10 --repo DomineYH/2026_databook",
+  "web/src/Viewer.tsx: zoomed state, zoomButton ref, the zoomWasOpen effect that focuses zoomButton on close, onDoubleClick={() => setZoomed([p])} on each page, the '크게' button onClick={() => setZoomed(visible)}, the zoom overlay with the autoFocus close button, the Escape and Tab handling in onKey",
+  "web/node_modules/page-flip/src/UI/UI.ts onMouseDown (calls preventDefault, so double-clicking a page does not move focus)"
+ ],
+ "workspace": "/mnt/c/dev/2026_databook-wt/gh-10",
+ "input_version": "39944ce",
+ "read_scope": [
+  "repository:read"
+ ],
+ "write_scope": [
+  "web/src/Viewer.tsx",
+  "/mnt/c/dev/2026_databook-wt/gh-10/.routing/tasks/ord-gh10-impl-r1.report.json",
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh10-impl-r1/ (build output, scripts, screenshots)"
+ ],
+ "allowed_actions": [
+  "read/search files",
+  "edit web/src/Viewer.tsx",
+  "cd web && npm ci (only if web/node_modules is missing in the worktree)",
+  "cd web && npm test / npm run build / npm run lint",
+  "npx vite preview --port 4312 --strictPort (ONLY port 4312; another worker runs in parallel on 4311)",
+  "drive a headless Chromium with a Node script using playwright-core: const { chromium } = require('/home/dominelinux/.npm/_npx/e41f203b7505f1fb/node_modules/playwright-core'); chromium.launch({ headless: true }). Put scripts under /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh10-impl-r1/. Do NOT use the Playwright MCP browser tools: the other worker owns that browser.",
+  "git add / git commit on branch fix/issue-10 in the worktree"
+ ],
+ "testing_mode": "test_first (host-accepted; manual determination authorized by the user 2026-11-19 when approving the Wave 1 plan; Jev confidence 0.46)",
+ "constraints_and_local_discretion": [
+  "You are a WORKER executing this order. The repository CLAUDE.md describes the host/coordinator; its 'never write product code' and 'use herdr workers' rules apply to the host, not to you. Do not launch agents, subagents, herdr panes or workers.",
+  "Work only in /mnt/c/dev/2026_databook-wt/gh-10. Never edit the main checkout /mnt/c/dev/2026_databook.",
+  "test_first: BEFORE editing, build and preview the unchanged code and show in the browser that criterion 2 fails (focus lands on '크게' instead of the input). Record document.activeElement before open and after close. If it does not fail, STOP and report NEEDS_DECISION.",
+  "Design: remember the previously focused element at OPEN time in the open handlers (the page onDoubleClick and the '크게' button onClick), e.g. in a ref. Do NOT read document.activeElement in an effect after the overlay renders: the close button's autoFocus has already taken focus by then. On close, the existing effect focuses the remembered element if it is an HTMLElement other than body, still connected (isConnected) and not disabled; otherwise the '크게' button. Clear the ref after use.",
+  "Keep the change small and in the existing places; one short comment saying why the element is captured in the handler. No other refactoring.",
+  "Out of scope: TOC overlay focus, #9 Tab trap, page-flip patches (another worker is changing the stopMove wrapper in parallel on another branch; do not touch onInit), new files, dependencies, test tooling, CSS.",
+  "Commit message: subject in plain English describing the user-visible fix, body explains why, 'Fixes #N' line, and end with these two lines exactly:\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01LPmFwaNXbmSn68nUJuz8gK\nDo not push, open PRs, comment on issues, or change labels.",
+  "Stop the preview server and close the browser when done.",
+  "Local discretion: exact code shape and wording within the design above."
+ ],
+ "verification_plan_ref": "/mnt/c/dev/2026_databook/.routing/tasks/gh-10.json#/verification_plan",
+ "verification": [
+  "red: criterion 2 on unchanged code",
+  "green: every acceptance criterion",
+  "repo-test: cd web && npm test && npm run build",
+  "repo-lint: cd web && npm run lint"
+ ],
+ "stop_conditions": [
+  "worktree HEAD is not 39944ce at start -> BLOCKED",
+  "criterion 2 does not fail on unchanged code -> NEEDS_DECISION",
+  "the fix needs changes outside the zoom open/close code -> NEEDS_DECISION",
+  "npm ci / build fails for environment reasons -> BLOCKED with the error"
+ ],
+ "deliverable": "One commit on fix/issue-10, plus the report file /mnt/c/dev/2026_databook-wt/gh-10/.routing/tasks/ord-gh10-impl-r1.report.json (JSON: status RESULT_SUBMITTED|NEEDS_DECISION|BLOCKED, order_id, commits [sha+subject], files_changed, verification [check_id, command_or_steps, result, notes] including the red run and before/after focus observations, not_run_with_reasons, open_issues, question). Do not commit the report. Then print as your final message exactly one line: `REPORT <status> .routing/tasks/ord-gh10-impl-r1.report.json`.",
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "pane_id": "w6:pD"
+}

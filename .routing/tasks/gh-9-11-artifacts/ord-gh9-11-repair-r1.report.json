@@ -1,0 +1,53 @@
+{
+  "status": "RESULT_SUBMITTED",
+  "order_id": "ord-gh9-11-repair-r1",
+  "commits": ["b8775a8 Keep next/prev turning the right way when pages are a few pixels wide"],
+  "files_changed": ["web/src/Viewer.tsx"],
+  "summary": "Inside the existing flipNext/flipPrev wrapper, page-flip's private getDirectionByPoint is temporarily replaced to return the requested direction (0 forward for flipNext, 1 back for flipPrev) and restored in finally, together with disableFlipByClick. The turn keeps its animation and goes through page-flip's normal flip event, so hash/indicator/localStorage update as before. The fix is not pure logic (it pins a library method), so nothing was added to book.ts and there is no new vitest case.",
+  "verification": [
+    {
+      "check_id": "repair-red",
+      "command_or_steps": "Build of 03f9c62 + vite preview on :4199, Playwright: from #/p/45 click next, ArrowRight, click prev, ArrowLeft (1.5s wait each), record location.hash",
+      "result": "fail_reproduced",
+      "notes": "1440x133 (book 18x13): 45 next->42 ArrowRight->40 prev->42 ArrowLeft->44 (next/ArrowRight went backward, prev went forward). 1440x120: same 45,42,40,42,44. 120x120 (spread): 45,42,40,42,44. Single page 30x300 (page 14px wide): 45,44,43,44,45. Single page 20x300 (page 4px wide): 45,44,43,44,45. Single page 40x300 (page 24px wide): 45,46,47, prev->48, ArrowLeft->49 (prev went forward because flipPrev's x=10 ignores the book's left offset). At 30x300, 20x300 and 40x300 the buttons are outside the viewport, so they were clicked with element.click() through JS."
+    },
+    {
+      "check_id": "repair-green",
+      "command_or_steps": "Same script on the b8775a8 build",
+      "result": "pass",
+      "notes": "1440x133, 1440x120, 120x120 and 200x200 (spread): 45 next->46 ArrowRight->48 prev->46 ArrowLeft->44, with localStorage 44 and indicator placeholder 44–45 at the end. Single page 60x300, 40x300, 30x300 and 20x300: 45,46,47,46,45. Re-run after restoring the fix file: 1440x133 45,46,48,46,44; 40x300 and 30x300 45,46,47,46,45."
+    },
+    {
+      "check_id": "regression",
+      "command_or_steps": "Same sequence at 1440x160, 1440x900 and 390x844. Then a mouse click at the centre of the bounding box of the visible page image (expect no turn), then a click 3px inside the bottom-right corner of .stf__block (expect a turn).",
+      "result": "pass",
+      "notes": "1440x160: 45,46,48,46,44; centre (706,80) 44->44; corner 44->46. 1440x900: 45,46,48,46,44; centre (445,450) 44->44; corner 44->46. 390x844: 45,46,47,46,45; centre (195,422) 45->45; corner 45->46. These match the 03f9c62 baseline run."
+    },
+    {
+      "check_id": "console",
+      "command_or_steps": "Playwright console log .playwright-mcp/console-2026-11-19T04-50-24-095Z.log (gitignored)",
+      "result": "pass",
+      "notes": "36 ERROR entries, all 'Failed to load resource 404 /_vercel/insights/script.js': the Vercel analytics script does not exist on a local preview. They were already there on the 03f9c62 build. No other errors."
+    },
+    {
+      "check_id": "repo-test",
+      "command_or_steps": "npm --prefix web test && npm --prefix web run build",
+      "result": "pass",
+      "notes": "21/21 tests passed; tsc -b + vite build succeeded"
+    },
+    {
+      "check_id": "repo-lint",
+      "command_or_steps": "npm --prefix web run lint",
+      "result": "pass",
+      "notes": "oxlint reported no warnings or errors"
+    }
+  ],
+  "not_run_with_reasons": [
+    "Swipe gestures were not driven in the browser. They go through the same wrapped flipNext/flipPrev, so the fix covers them, but they are not separately verified.",
+    "Turning-direction checks at the first and last page edges in tiny sizes were not run. checkDirection still guards them, as before."
+  ],
+  "open_issues": [
+    "The wrapper depends on page-flip 2.0.x's private getDirectionByPoint and on the FlipDirection const-enum values (0 forward, 1 back). The existing 'ponytail: re-check on upgrade' comment covers this."
+  ],
+  "question": null
+}

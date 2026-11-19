@@ -1,0 +1,77 @@
+{
+ "task_id": "gh-9,gh-11",
+ "order_id": "ord-gh9-11-repair-r1",
+ "order_revision": 1,
+ "role_id": "implementer",
+ "purpose": "repair",
+ "at_stage": "conditional_repair",
+ "run_when": "now",
+ "objective": "Fix the important review finding on PR #14 (#11 part): with the flipNext/flipPrev wrapper, when the book is so small that page-flip's fixed 10px inset crosses the spine (e.g. viewport 1440x133: book ~13px tall, ~9px per page), the next button/ArrowRight turns BACKWARD and prev/ArrowLeft turns FORWARD. Add one new commit on fix/issues-9-11 (do not amend or rewrite 6488d90/03f9c62).",
+ "acceptance_criteria": [
+  "At every viewport size, the next button and ArrowRight never turn to an earlier page, and the prev button and ArrowLeft never turn to a later page",
+  "At 1440x133 and 1440x120 (spread) and at a single-page size small enough to hit the same problem (find one, e.g. 200x200 or smaller), next/prev buttons and arrow keys either turn in the correct direction or do nothing; turning in the correct direction is preferred",
+  "Unchanged from 03f9c62: at 1440x160, 1440x900 and 390x844 buttons and arrow keys turn pages correctly (from #/p/45: next->46, ArrowRight->48, prev->46, ArrowLeft->44 in spread; 46,47,46,45 single)",
+  "A click at the centre of the visible page image (use its bounding box) does not turn the page at 1440x160, 1440x900 and 390x844; corner clicks still turn",
+  "No new console errors; `cd web && npm test && npm run build` and `cd web && npm run lint` pass"
+ ],
+ "input_refs": [
+  "Review finding (below in constraints)",
+  "web/src/Viewer.tsx onInit wrapper (~lines 136-145)",
+  "web/node_modules/page-flip/src/Flip/Flip.ts:80 (gate), :203-260 (flipToPage/flipNext/flipPrev), :385-397 (getDirectionByPoint: portrait BACK if x - pageWidth <= width/5; landscape BACK if x < width/2)",
+  "web/node_modules/page-flip/src/PageFlip.ts:178-214 (turnToPrevPage/turnToNextPage/flipNext/flip)",
+  "git show 03f9c62"
+ ],
+ "workspace": "/mnt/c/dev/2026_databook-wt/gh-9-11",
+ "input_version": "03f9c620b9b106c0d988d1248fce8a65f1145e7e",
+ "read_scope": [
+  "repository:read-only"
+ ],
+ "write_scope": [
+  "web/src/Viewer.tsx",
+  "web/src/book.ts",
+  "web/src/book.test.ts",
+  ".routing/tasks/ord-gh9-11-repair-r1.report.json"
+ ],
+ "allowed_actions": [
+  "read/search files",
+  "edit files in write_scope",
+  "gh issue view (read-only)",
+  "git show/log/diff/status",
+  "git add + git commit on branch fix/issues-9-11 only",
+  "cd web && npx vitest run src/book.test.ts",
+  "cd web && npm test && npm run build",
+  "cd web && npm run lint",
+  "cd web && npm run preview (local server; stop it when done)",
+  "Playwright browser tools against the local preview URL only"
+ ],
+ "constraints_and_local_discretion": [
+  "You are a WORKER executing this order. The repository CLAUDE.md describes the host/coordinator; it is not addressed to you. Do not launch agents, subagents, herdr panes or workers.",
+  "Review finding (task-verifier, important): 'The wrapper lets Next and Previous turn in the wrong direction when a spread's individual pages are narrower than 10 px. At 1440x133 the library's fixed 10 px inset puts the synthetic Next point left of the spine and the Previous point right of it. The baseline corner check rejects both points. With the check bypassed, the library interprets both directions backward (Flip.ts:80, :243, :255, :385).'",
+  "Testing mode test_first: first reproduce in the browser at 1440x133 on 03f9c62 that next/ArrowRight goes backward (record the page sequence), then fix, then re-check all acceptance sizes.",
+  "Suggested design (you may choose another if it is smaller and meets the criteria): keep the wrapper's bypass only when the synthetic point is read in the requested direction; otherwise do not bypass, or fall back to page-flip's non-animated turnToNextPage()/turnToPrevPage() (animation is meaningless on a few-pixel book). Make sure the app's onFlip handling (hash/indicator/localStorage) still updates on the fallback path. If you add size/direction logic that can be pure, put it in book.ts with a vitest case.",
+  "No new dependencies, no new files, no test infrastructure, no CSS minimum height. Keep #9 code untouched.",
+  "Commit message explains the finding and the fix, ends with 'Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>'. Do not push, open PRs, comment on GitHub, or change labels.",
+  "Stop your vite preview server when done."
+ ],
+ "testing_decision_ref": ".routing/tasks/gh-9.json#/testing_decision ; .routing/tasks/gh-11.json#/testing_decision (main checkout)",
+ "verification_plan_ref": ".routing/tasks/gh-9.json#/verification_plan ; .routing/tasks/gh-11.json#/verification_plan (main checkout)",
+ "verification": [
+  "repair-red: browser at 1440x133 on 03f9c62 shows wrong-direction turn (sequence recorded)",
+  "repair-green: same sizes after fix",
+  "regression: 1440x160, 1440x900, 390x844 sequences + centre-of-page-image click + corner clicks",
+  "repo-test: cd web && npm test && npm run build",
+  "repo-lint: cd web && npm run lint"
+ ],
+ "stop_conditions": [
+  "A change outside write_scope seems necessary",
+  "A new dependency or test infrastructure seems necessary",
+  "An acceptance criterion cannot be met with the given design",
+  "Any existing test or lint check fails for a reason you cannot fix within write_scope",
+  "Two failed fix attempts on the same problem"
+ ],
+ "deliverable": "One new commit on fix/issues-9-11 in /mnt/c/dev/2026_databook-wt/gh-9-11, plus report file /mnt/c/dev/2026_databook-wt/gh-9-11/.routing/tasks/ord-gh9-11-repair-r1.report.json (JSON: status RESULT_SUBMITTED|NEEDS_DECISION|BLOCKED, order_id, commits, files_changed, verification [check_id, command_or_steps, result, notes] with page sequences, not_run_with_reasons, open_issues, question). Then print as your final message exactly one line: `REPORT <status> .routing/tasks/ord-gh9-11-repair-r1.report.json`.",
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "pane_id": "w6:p6"
+}

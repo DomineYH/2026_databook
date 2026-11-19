@@ -1,0 +1,65 @@
+{
+  "status": "RESULT_SUBMITTED",
+  "order_id": "ord-gh15-impl-r1",
+  "commits": [{ "sha": "5915643", "subject": "Stop a corner hover from turning the page in a very short window" }],
+  "files_changed": ["web/src/Viewer.tsx"],
+  "verification": [
+    {
+      "check_id": "red",
+      "command_or_steps": "Unchanged code (HEAD aca4937), vite preview, Playwright Chromium 1440x160, #/p/45, mouse.move to a corner 3px inside both edges of .stf__block (steps:1), wait 100ms, mouse.move to window centre (steps:1), wait 1500ms, read location.hash",
+      "result": "fail (bug reproduced)",
+      "notes": "Book is a spread 56.5px wide (each page ~28px). BR #/p/45 -> #/p/46, TR -> #/p/46, BL -> #/p/42, TL -> #/p/42 (backward turn to spread 42-43, not 44 as the order expected, but still a turn). 1440x900 and 390x844: all four corners stay at #/p/45."
+    },
+    {
+      "check_id": "green",
+      "command_or_steps": "Same reproduction after the fix, all four corners at 1440x160, 1440x900, 390x844",
+      "result": "pass",
+      "notes": "Every corner at every viewport: #/p/45 -> #/p/45."
+    },
+    {
+      "check_id": "hover-fold",
+      "command_or_steps": "1440x900 and 390x844: hover the BR and BL corners 5px inside, wait 400ms, compare screenshot to baseline; move to centre, wait 1500ms, compare again. Run on the base build (port 4616) and the fixed build (port 4615)",
+      "result": "pass",
+      "notes": "Fixed: 1440x900 BR shows fold + restores; 1440x900 BL shows fold + restores; 390x844 BR shows fold + restores; hash unchanged in all. 390x844 BL shows no hover fold, the same on the base build: by design, the existing isPointOnCorners patch keeps page-flip's original corners for hover previews, so a single page's left corners have no preview. Base 1440x900 BL screenshot showed no fold in that one run, probably screenshot timing; fixed showed it."
+    },
+    {
+      "check_id": "click-drag",
+      "command_or_steps": "1440x900 and 390x844, BR and BL: click the corner; drag the corner past the spine with 15 steps (portrait BR: to x=4, left of the page edge) and release; drag 40px and release. Base and fixed builds",
+      "result": "pass",
+      "notes": "Fixed matches base in every case. 1440x900: BR click/drag far -> #/p/46, BL click/drag far -> #/p/42, small drags -> #/p/45. 390x844: BR click/drag far -> #/p/46, BR small -> #/p/45, BL click/drag far -> #/p/44. Exception, on base too: 390x844 BL small 40px drag -> #/p/44 (turns back). Not caused by this change (hovering is false during drags); see open_issues."
+    },
+    {
+      "check_id": "buttons-keys-1440x160",
+      "command_or_steps": "1440x160 #/p/45: click 다음 쪽, then 이전 쪽; reload, ArrowRight, then ArrowLeft",
+      "result": "pass",
+      "notes": "next -> #/p/46, prev -> #/p/44, ArrowRight -> #/p/46, ArrowLeft -> #/p/44 (#11 not regressed)."
+    },
+    {
+      "check_id": "console",
+      "command_or_steps": "Playwright console messages, all levels, whole session",
+      "result": "pass",
+      "notes": "Only error: 404 for /_vercel/insights/script.js (Vercel analytics is absent on the local preview), on base and fixed builds alike. No page or JS errors."
+    },
+    {
+      "check_id": "repo-test",
+      "command_or_steps": "cd web && npm test && npm run build",
+      "result": "pass",
+      "notes": "21/21 tests passed; build ok."
+    },
+    {
+      "check_id": "repo-lint",
+      "command_or_steps": "cd web && npm run lint",
+      "result": "pass",
+      "notes": "oxlint exit 0, no findings."
+    }
+  ],
+  "not_run_with_reasons": [
+    "Hover-fold check for the top corners at 1440x900/390x844: only the bottom corners were screenshot-checked; the top corners were covered by the hash-only hover run (unchanged).",
+    "Touch/swipe was not tested: the order does not ask for it, and the change only affects stopMove calls made from inside showCorner (mouse hover)."
+  ],
+  "open_issues": [
+    "On the base build too: at 390x844 a 40px drag from the bottom-left corner turns back (#/p/45 -> #/p/44) instead of returning. Not caused by this change; may deserve its own issue.",
+    "On the base build too: in portrait the left corners show no hover preview (by design in the existing isPointOnCorners patch)."
+  ],
+  "question": null
+}

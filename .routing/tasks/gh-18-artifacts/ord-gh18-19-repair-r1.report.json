@@ -1,0 +1,319 @@
+{
+ "status": "RESULT_SUBMITTED",
+ "order_id": "ord-gh18-19-repair-r1",
+ "commits": [
+  {
+   "sha": "fcae269",
+   "subject": "Let a key or button turn finish when a short backward drag ends on it",
+   "refs": "#18",
+   "pushed": "origin/fix/issues-18-19 e2b53b7..fcae269"
+  }
+ ],
+ "files_changed": [
+  "web/src/Viewer.tsx"
+ ],
+ "change": "In the stopMove wrapper, the shortBack case now calls the public render.finishAnimation() before dropFold(flip) (the preferred fix). The comment now says 'at or past the middle'. The comparator is unchanged.",
+ "verification": [
+  {
+   "check_id": "red-overlap",
+   "command_or_steps": "HEAD e2b53b7 built to /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-repair-r1/dist, vite preview :4311, EXPECT=red node /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-repair-r1/compare.cjs (reviewer script with the port changed; baseline 39944ce served from the triage dist via routing)",
+   "result": "pass (reproduced)",
+   "notes": "Overlap (ArrowLeft, then press, +12px, release while animating): branch #/p/45 3/3, base 39944ce #/p/44 3/3. Stale callback: after the short release, a new press moving to the right side turned to #/p/46 while the mouse was held.",
+   "overlap_runs": [
+    {
+     "build": "branch",
+     "hash": "#/p/45",
+     "pendingAfterRelease": true
+    },
+    {
+     "build": "base_39944ce",
+     "hash": "#/p/44",
+     "pendingAfterRelease": true
+    },
+    {
+     "build": "branch",
+     "hash": "#/p/45",
+     "pendingAfterRelease": true
+    },
+    {
+     "build": "base_39944ce",
+     "hash": "#/p/44",
+     "pendingAfterRelease": true
+    },
+    {
+     "build": "branch",
+     "hash": "#/p/45",
+     "pendingAfterRelease": true
+    },
+    {
+     "build": "base_39944ce",
+     "hash": "#/p/44",
+     "pendingAfterRelease": true
+    }
+   ],
+   "stale": [
+    {
+     "dropped": {
+      "state": "read",
+      "pendingAnimation": true,
+      "hash": "#/p/45"
+     },
+     "hash_while_next_drag_held": "#/p/46"
+    }
+   ]
+  },
+  {
+   "check_id": "green-overlap",
+   "command_or_steps": "rebuild with fix, EXPECT=green node compare.cjs",
+   "result": "pass",
+   "notes": "Branch #/p/44 3/3 (same as base), with no animation pending after release. The follow-up forward fold stays on #/p/44 while held, so no stale callback. ArrowLeft during a mode switch #/p/44; a 70px fast backward swipe #/p/44; a release at exactly -pageWidth/2 #/p/44 (inclusive, matching the comment).",
+   "overlap_runs": [
+    {
+     "build": "branch",
+     "hash": "#/p/44",
+     "pendingAfterRelease": false
+    },
+    {
+     "build": "base_39944ce",
+     "hash": "#/p/44",
+     "pendingAfterRelease": true
+    },
+    {
+     "build": "branch",
+     "hash": "#/p/44",
+     "pendingAfterRelease": false
+    },
+    {
+     "build": "base_39944ce",
+     "hash": "#/p/44",
+     "pendingAfterRelease": true
+    },
+    {
+     "build": "branch",
+     "hash": "#/p/44",
+     "pendingAfterRelease": false
+    },
+    {
+     "build": "base_39944ce",
+     "hash": "#/p/44",
+     "pendingAfterRelease": true
+    }
+   ],
+   "stale": [
+    {
+     "dropped": {
+      "state": "read",
+      "pendingAnimation": false,
+      "hash": "#/p/44"
+     },
+     "hash_while_next_drag_held": "#/p/44"
+    }
+   ]
+  },
+  {
+   "check_id": "acceptance",
+   "command_or_steps": "TAG=green node /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-repair-r1/verify.cjs (reviewer's acceptance replay)",
+   "result": "pass",
+   "notes": "34/34, including #19 (4 switches #/p/45), #18 short drags mouse+touch #/p/45 (the isolated short drag is unchanged), +220/+300/touch +300 and left clicks #/p/44, #15, #11, 1440x900/390x844 hover/click/drag, and the hash jump #/p/80. Only console error: the pre-existing 404 for /_vercel/insights/script.js.",
+   "runs": [
+    {
+     "check": "[19] 1440x160->60x160 br",
+     "got": "#/p/45",
+     "ok": true
+    },
+    {
+     "check": "[19] 1440x160->60x160 tr",
+     "got": "#/p/45",
+     "ok": true
+    },
+    {
+     "check": "[19] 1440x160->60x160 bl",
+     "got": "#/p/45",
+     "ok": true
+    },
+    {
+     "check": "[19] 60x160->1440x160 br",
+     "got": "#/p/45",
+     "ok": true
+    },
+    {
+     "check": "[18] 390x844 mouse lb +40 15 steps",
+     "got": "#/p/45",
+     "ok": true
+    },
+    {
+     "check": "[18] 390x844 mouse lb +8",
+     "got": "#/p/45",
+     "ok": true
+    },
+    {
+     "check": "[18] 390x844 mouse lt +40 15 steps",
+     "got": "#/p/45",
+     "ok": true
+    },
+    {
+     "check": "[18] 390x844 touch lb +40",
+     "got": "#/p/45",
+     "ok": true
+    },
+    {
+     "check": "[18] 390x844 touch lb +8",
+     "got": "#/p/45",
+     "ok": true
+    },
+    {
+     "check": "[18] 390x844 touch lt +40",
+     "got": "#/p/45",
+     "ok": true
+    },
+    {
+     "check": "[18] 390x844 lb +220 15 steps",
+     "got": "#/p/44",
+     "ok": true
+    },
+    {
+     "check": "[18] 390x844 lb +300 15 steps",
+     "got": "#/p/44",
+     "ok": true
+    },
+    {
+     "check": "[18] 390x844 touch lb +300",
+     "got": "#/p/44",
+     "ok": true
+    },
+    {
+     "check": "[18] 390x844 lb click",
+     "got": "#/p/44",
+     "ok": true
+    },
+    {
+     "check": "[18] 390x844 lt click",
+     "got": "#/p/44",
+     "ok": true
+    },
+    {
+     "check": "[15] 1440x160 hover br -> centre",
+     "got": "#/p/45",
+     "ok": true
+    },
+    {
+     "check": "[15] 1440x160 hover tr -> centre",
+     "got": "#/p/45",
+     "ok": true
+    },
+    {
+     "check": "[15] 1440x160 hover bl -> centre",
+     "got": "#/p/45",
+     "ok": true
+    },
+    {
+     "check": "[15] 1440x160 hover tl -> centre",
+     "got": "#/p/45",
+     "ok": true
+    },
+    {
+     "check": "[11] 1440x160 buttons+keys",
+     "got": "prev:#/p/42 next:#/p/44 ArrowLeft:#/p/42 ArrowRight:#/p/44",
+     "ok": true
+    },
+    {
+     "check": "[normal] 1440x900 hover br",
+     "got": "fold_corner->read #/p/45",
+     "ok": true
+    },
+    {
+     "check": "[normal] 1440x900 hover bl",
+     "got": "fold_corner->read #/p/45",
+     "ok": true
+    },
+    {
+     "check": "[normal] 1440x900 br click",
+     "got": "#/p/46",
+     "ok": true
+    },
+    {
+     "check": "[normal] 1440x900 bl click",
+     "got": "#/p/42",
+     "ok": true
+    },
+    {
+     "check": "[normal] 1440x900 br drag past spine -800",
+     "got": "#/p/46",
+     "ok": true
+    },
+    {
+     "check": "[normal] 1440x900 bl drag past spine +700",
+     "got": "#/p/42",
+     "ok": true
+    },
+    {
+     "check": "[normal] 1440x900 br short drag -40",
+     "got": "#/p/45",
+     "ok": true
+    },
+    {
+     "check": "[normal] 1440x900 bl short drag +40",
+     "got": "#/p/45",
+     "ok": true
+    },
+    {
+     "check": "[normal] 390x844 hover br",
+     "got": "fold_corner->read #/p/45",
+     "ok": true
+    },
+    {
+     "check": "[normal] 390x844 br click",
+     "got": "#/p/46",
+     "ok": true
+    },
+    {
+     "check": "[normal] 390x844 br short drag -40",
+     "got": "#/p/45",
+     "ok": true
+    },
+    {
+     "check": "[normal] 390x844 br drag past spine -420",
+     "got": "#/p/46",
+     "ok": true
+    },
+    {
+     "check": "[normal] 1440x900 hash jump",
+     "got": "#/p/80",
+     "ok": true
+    },
+    {
+     "check": "[normal] 390x844 hash jump",
+     "got": "#/p/80",
+     "ok": true
+    }
+   ]
+  },
+  {
+   "check_id": "repo-test",
+   "command_or_steps": "cd web && npm test && npm run build",
+   "result": "pass",
+   "notes": "21/21; build exit 0"
+  },
+  {
+   "check_id": "repo-lint",
+   "command_or_steps": "cd web && npm run lint",
+   "result": "pass",
+   "notes": "exit 0"
+  }
+ ],
+ "artifacts": [
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-repair-r1/compare.cjs",
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-repair-r1/compare-red.log",
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-repair-r1/compare-green.log",
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-repair-r1/verify.cjs",
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-repair-r1/verify-green.log",
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-repair-r1/results-green.json"
+ ],
+ "not_run_with_reasons": [
+  "The Playwright MCP browser was not used. I adapted the reviewer's playwright-core scripts (headless, closed on exit) instead, so red, green and base runs use identical inputs."
+ ],
+ "open_issues": [
+  "The e2b53b7 commit message still says 'past the middle'. History was not rewritten because the order asked for a new commit and no amend. The new commit message and the code comment say 'at or past'."
+ ],
+ "question": null
+}

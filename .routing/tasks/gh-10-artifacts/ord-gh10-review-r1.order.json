@@ -1,0 +1,61 @@
+{
+ "task_id": "gh-10",
+ "order_id": "ord-gh10-review-r1",
+ "order_revision": 1,
+ "role_id": "task-verifier",
+ "purpose": "independent_review",
+ "at_stage": "independent_review_and_ci",
+ "run_when": "now",
+ "objective": "Independently review PR #20 (branch fix/issue-10, commit 57702d1, diff 39944ce..57702d1) that fixes GitHub issue #10: closing the zoom overlay must return focus to the element focused when it was opened.",
+ "acceptance_criteria": [
+  "Open with the '⤢ 크게' button, close (Escape and the ✕ 닫기 button) -> focus on the '크게' button (as today).",
+  "Focus the page-number input, double-click a page, close (Escape and ✕) -> focus back on the page-number input (today: the '크게' button).",
+  "Focus another focusable control (e.g. the TOC button or next button), double-click a page, close -> focus back on that control.",
+  "Nothing focused (document.activeElement is body), double-click a page, close -> focus on the '크게' button.",
+  "If the remembered element is no longer in the document or disabled, fall back to the '크게' button.",
+  "The TOC overlay's focus behaviour, the #9 Tab trap, Escape, arrow keys and page turning are unchanged.",
+  "Checked at 1440x900 and 390x844. No console errors except the local-preview 404 for /_vercel/insights/script.js (pre-existing).",
+  "`cd web && npm test && npm run build` and `cd web && npm run lint` pass."
+ ],
+ "input_refs": [
+  "git diff 39944ce..57702d1 (web/src/Viewer.tsx only)",
+  "gh issue view 10 --repo DomineYH/2026_databook",
+  "gh pr view 20 --repo DomineYH/2026_databook (CI passed: run 44500772450)",
+  "implementer report (claims, not proof): /mnt/c/dev/2026_databook-wt/gh-10/.routing/tasks/ord-gh10-impl-r1.report.json",
+  "web/node_modules/page-flip/src/UI/UI.ts onMouseDown"
+ ],
+ "workspace": "/mnt/c/dev/2026_databook-wt/gh-10",
+ "input_version": "57702d1",
+ "read_scope": [
+  "repository:read-only"
+ ],
+ "write_scope": [
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh10-review-r1/ (optional browser scripts and output only)"
+ ],
+ "allowed_actions": [
+  "read/search files",
+  "git show/diff/log (read-only)",
+  "gh issue view / gh pr view / gh pr checks (read-only)",
+  "cd web && npm test / npm run lint",
+  "optional: npx vite build --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh10-review-r1/dist and npx vite preview --port 4313 --strictPort --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh10-review-r1/dist, driven by a Node script with require('/home/dominelinux/.npm/_npx/e41f203b7505f1fb/node_modules/playwright-core') chromium.launch({headless:true}) (port 4313 only; stop the server when done)"
+ ],
+ "constraints_and_local_discretion": [
+  "Read-only on the repository: do not edit, stage, commit, push, or comment on GitHub. AGENTS.md/CLAUDE.md describe the host/coordinator, not you; do not start agents or panes.",
+  "Verdict rules: PASS = no important findings and every acceptance criterion met by code inspection and/or browser evidence. FAIL = at least one important finding (a concrete defect or unmet criterion caused by this change). BLOCKED only if you cannot read the inputs. Pre-existing issues and the local-preview 404 for /_vercel/insights/script.js are pre_existing and never fail the review. Do not return BLOCKED merely because you did not run a browser.",
+  "Questions: (1) The pages are built once in useMemo and capture openZoom from the first render: is that safe (refs and state setters only)? (2) Any path that opens or closes the zoom overlay without going through openZoom / the effect (Escape in onKey, the ✕ button, hash change, unmount), and does each restore focus correctly? (3) Does focusing the remembered element interact badly with the #9 Tab trap, the TOC overlay focus effect, or page-flip (e.g. focusing a page link inside the book)? (4) Is the fallback condition (HTMLElement, not body, isConnected, not :disabled) right; any case where focus would go to a hidden/inert element? (5) Are the comment and commit message accurate?",
+  "Report only actionable findings with file:line and a concrete failure scenario."
+ ],
+ "verification": [
+  "review of fixed diff 39944ce..57702d1",
+  "npm test / lint",
+  "optional browser check"
+ ],
+ "stop_conditions": [
+  "worktree HEAD is not 57702d1 -> BLOCKED"
+ ],
+ "deliverable": "Write your review to /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh10-review-r1/review.md as a block starting with the line `REVIEW_BEGIN` and ending with `REVIEW_END`, containing: verdict PASS|FAIL|BLOCKED, reviewed_revision, findings [severity important|nit|pre_existing, file:line, summary, failure_scenario], criteria_check (each acceptance criterion -> met/unmet/unverifiable + evidence), answers to questions 1-5, checks_run with results. Then print as your final message exactly: `REPORT RESULT_SUBMITTED /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh10-review-r1/review.md` (or `REPORT BLOCKED <reason>`).",
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "pane_id": "w6:pE"
+}

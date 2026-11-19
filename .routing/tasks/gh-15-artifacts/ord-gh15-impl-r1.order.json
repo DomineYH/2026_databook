@@ -1,0 +1,67 @@
+{
+ "task_id": "gh-15",
+ "order_id": "ord-gh15-impl-r1",
+ "order_revision": 1,
+ "role_id": "implementer",
+ "purpose": "implementation",
+ "at_stage": "implementation",
+ "run_when": "now",
+ "objective": "Fix GitHub issue #15: in a very low window (1440x160, page width under 50px) a hover corner preview must never turn the page when the mouse leaves the corner. Make one commit on branch fix/issue-15 in the worktree /mnt/c/dev/2026_databook-wt/gh-15.",
+ "acceptance_criteria": [
+  "1440x160, #/p/45: one mouse move onto the bottom-right corner of the book, wait ~100ms, one mouse move to the window centre -> the hash stays #/p/45 (before the fix it becomes #/p/46). Same for the top-right corner; for the left corners the hash must not become #/p/44.",
+  "1440x900 and 390x844: hovering a corner shows the fold; moving away returns it and the page is unchanged.",
+  "1440x900 and 390x844: clicking a corner turns the page; dragging a corner past the spine and releasing turns it; dragging a little and releasing returns it.",
+  "1440x160: the prev/next buttons and ArrowLeft/ArrowRight still turn pages (#11 must not regress).",
+  "No browser console errors.",
+  "`cd web && npm test && npm run build` and `cd web && npm run lint` pass."
+ ],
+ "input_refs": [
+  "gh issue view 15 --repo DomineYH/2026_databook (issue + triage comment with the agent brief)",
+  "/mnt/c/dev/2026_databook/.routing/evidence/ord-gh15-triage-r1.json (root-cause evidence, call paths; claims from source reading, not browser-verified)",
+  "web/src/Viewer.tsx onInit: the hovering flag + showCorner wrapper, and the stopMove wrapper that falls back to dropFold",
+  "web/node_modules/page-flip/src/Flip/Flip.ts showCorner and stopMove"
+ ],
+ "workspace": "/mnt/c/dev/2026_databook-wt/gh-15",
+ "input_version": "aca4937",
+ "read_scope": ["repository:read"],
+ "write_scope": ["web/src/Viewer.tsx", "/mnt/c/dev/2026_databook-wt/gh-15/.routing/tasks/ord-gh15-impl-r1.report.json"],
+ "allowed_actions": [
+  "read/search files",
+  "edit web/src/Viewer.tsx",
+  "cd web && npm ci (only if web/node_modules is missing in the worktree)",
+  "cd web && npm test / npm run build / npm run lint / npm run preview",
+  "drive a Chromium browser with Playwright against the local preview server",
+  "git add / git commit on branch fix/issue-15 in the worktree"
+ ],
+ "testing_mode": "test_first (host-accepted; manual determination authorized by the user 2026-11-19 after Jev confidence 0.52)",
+ "constraints_and_local_discretion": [
+  "You are a WORKER executing this order. The repository CLAUDE.md describes the host/coordinator; its 'never write product code' and 'use herdr workers' rules apply to the host, not to you. Do not launch agents, subagents, herdr panes or workers.",
+  "Work only in /mnt/c/dev/2026_databook-wt/gh-15. Never edit the main checkout /mnt/c/dev/2026_databook.",
+  "test_first: BEFORE editing, build and preview the unchanged code and reproduce the bug with Playwright at 1440x160: open #/p/45, page.mouse.move onto the bottom-right corner of the book (a few px inside both edges) in ONE step, wait ~100ms, then page.mouse.move to the window centre in ONE step (steps:1; many small steps make the bug timing-dependent and can hide it). Record the hash before and after. Expected red: #/p/46. If you cannot reproduce it, STOP and report NEEDS_DECISION with what you observed; do not fix blind.",
+  "Fix design: in Viewer.tsx onInit, change only the existing controller.stopMove wrapper. When the existing `hovering` flag is true (stopMove is being called from inside showCorner, i.e. the mouse left a hover preview) and the fold position from controller.getCalculation()?.getPosition() has x <= 0, call the existing dropFold(flip) instead of page-flip's stopMove. In every other case keep today's behaviour exactly (position present -> original stopMove, no position -> dropFold). Sketch: const pos = controller.getCalculation()?.getPosition(); return pos && !(hovering && pos.x <= 0) ? stopMove() : dropFold(flip). Add one short comment saying why (a hover preview must never turn the page; on a page narrower than page-flip's fixed 50px fold it rests across the spine, #15).",
+  "Make sure `hovering` is declared before the stopMove wrapper uses it (it is declared in the same onInit scope today) and that the wrapper reads it at call time.",
+  "After the fix re-run the same reproduction (expect #/p/45) and check every acceptance criterion in the browser; write each viewport and observed result in the report.",
+  "Out of scope: patching node_modules or page-flip versions, hiding the preview on small pages, refactoring the other page-flip patches (isPointOnCorners, flipNext/flipPrev, settle, dropFold), the 'mouse leaves the window straight from the corner' case, new files, new dependencies, test tooling, CSS changes.",
+  "Commit: one commit, subject in plain English describing the user-visible fix, body explains why; end the message with the line 'Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>'. Do not push, open PRs, comment on issues, or change labels.",
+  "Stop the preview server and close the browser when done.",
+  "Local discretion: exact code shape and comment/commit wording, within the design above."
+ ],
+ "verification_plan_ref": "/mnt/c/dev/2026_databook/.routing/tasks/gh-15.json#/verification_plan",
+ "verification": [
+  "red: browser reproduction on unchanged code (expect #/p/46)",
+  "green: same reproduction after the fix (expect #/p/45) + every acceptance criterion at the three viewports",
+  "repo-test: cd web && npm test && npm run build",
+  "repo-lint: cd web && npm run lint"
+ ],
+ "stop_conditions": [
+  "worktree HEAD is not aca4937 at start (stale input) -> BLOCKED",
+  "the bug does not reproduce on unchanged code -> NEEDS_DECISION",
+  "the fix needs a change outside the stopMove wrapper, or breaks any acceptance criterion -> NEEDS_DECISION",
+  "npm ci / build fails for environment reasons -> BLOCKED with the error"
+ ],
+ "deliverable": "One commit on fix/issue-15 in /mnt/c/dev/2026_databook-wt/gh-15, plus the report file /mnt/c/dev/2026_databook-wt/gh-15/.routing/tasks/ord-gh15-impl-r1.report.json (JSON: status RESULT_SUBMITTED|NEEDS_DECISION|BLOCKED, order_id, commits [sha+subject], files_changed, verification [check_id, command_or_steps, result, notes] including the red run and the before/after browser observations per viewport, not_run_with_reasons, open_issues, question (for NEEDS_DECISION: question, evidence, consequence_of_guessing, recommendation)). Do not commit the report file. Then print as your final message exactly one line: `REPORT <status> .routing/tasks/ord-gh15-impl-r1.report.json`.",
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "pane_id": "w6:p8"
+}

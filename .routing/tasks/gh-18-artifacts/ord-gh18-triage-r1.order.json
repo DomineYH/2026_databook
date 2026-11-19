@@ -1,0 +1,66 @@
+{
+ "task_id": "gh-18",
+ "order_id": "ord-gh18-triage-r1",
+ "order_revision": 1,
+ "role_id": "inspector",
+ "purpose": "repository_evidence",
+ "at_stage": "intake",
+ "run_when": "now",
+ "objective": "Triage GitHub issue #18 (DomineYH/2026_databook): reproduce it in a browser on current main, find the root cause from source, decide the triage label, and if it is agent-ready write an agent brief.",
+ "evidence_gap": "repo: does the short left-corner drag in portrait (390x844) really turn back on current main, and why? The issue guesses the app's isPointOnCorners portrait patch plus page-flip's wrong backward-fold coordinates make stopMove see x <= 0 on release. Which code path decides the turn, and what is the smallest safe fix?",
+ "acceptance_criteria": [
+  "Reproduction verdict reproduced|not_reproduced|partly with the exact Playwright steps, viewport sizes and observed hashes (run at least 3 times; note timing sensitivity)",
+  "Root-cause verdict confirmed|refuted|partly|unknown with file:line evidence from web/src/Viewer.tsx and web/node_modules/page-flip/src",
+  "Every code path involved is listed",
+  "A recommended fix with the exact place to change and why it keeps the #11 and #15 behaviour and the normal-size (1440x900, 390x844) hover/click/drag behaviour unchanged (or null if not reproduced)",
+  "Triage label chosen from: ready-for-agent | ready-for-human | needs-info | wontfix, with a one-paragraph reason (not reproduced -> wontfix or needs-info, say which and why)",
+  "If ready-for-agent: an agent brief (Korean, plain language) with summary, current vs desired behaviour, where to change, acceptance criteria, out of scope"
+ ],
+ "input_refs": [
+  "gh issue view 18 --repo DomineYH/2026_databook",
+  "web/src/Viewer.tsx (onInit: isPointOnCorners portrait patch, stopMove wrapper, flipNext/flipPrev wrapper, dropFold, settle)",
+  "web/node_modules/page-flip/src/Flip/Flip.ts (fold/start/do/stopMove, getDirectionByPoint), PageFlip.ts (userStart/userMove/userStop), FlipCalculation.ts",
+  "PR #17 (#15 fix) and PR #14 (#11 fix) for context",
+  "docs/agents/triage-labels.md, GLOSSARY.md, docs/adr/ (domain terms)"
+ ],
+ "workspace": "/mnt/c/dev/2026_databook",
+ "input_version": "39944ce",
+ "read_scope": [
+  "repository:read-only"
+ ],
+ "write_scope": [
+  ".routing/evidence/ord-gh18-triage-r1.json",
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-triage-r1/ (build output, screenshots, scripts)"
+ ],
+ "allowed_actions": [
+  "read/search files",
+  "git show/diff/log (read-only)",
+  "gh issue view / gh pr view (read-only)",
+  "build into a temp dir: cd web && npx vite build --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-triage-r1/dist --emptyOutDir",
+  "serve it: cd web && npx vite preview --port 4301 --strictPort --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-triage-r1/dist (use only port 4301; another worker uses a different port)",
+  "drive Chromium with the Playwright MCP tools against that server"
+ ],
+ "constraints_and_local_discretion": [
+  "Read-only on the repository: do not edit, stage, commit, push, label, or comment on GitHub. The host applies labels and comments.",
+  "You may write only .routing/evidence/ord-gh18-triage-r1.json and files under /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-triage-r1/. Never build into web/dist or edit anything under web/.",
+  "The repository CLAUDE.md/AGENTS.md describe the host/coordinator, not you: do not start herdr panes, sub-agents or routing calls.",
+  "Use single-step page.mouse.move calls (steps:1) unless the issue says otherwise; many small steps can hide timing-dependent bugs. To simulate the mouse leaving the window, move to a point outside the viewport (e.g. x=-10) and/or dispatch mouseout/mouseleave on document, and say exactly which you did.",
+  "Stop the preview server and close the browser when done.",
+  "Keep the brief free of line numbers that will rot; name functions/files instead."
+ ],
+ "stop_conditions": [
+  "HEAD is not 39944ce (stale input) -> report BLOCKED",
+  "you would need to write anything outside the allowed paths -> report NEEDS_DECISION"
+ ],
+ "deliverable": "Write .routing/evidence/ord-gh18-triage-r1.json as JSON: {order_id, input_version, reproduction: {verdict, steps, observations:[...]}, root_cause: {verdict, explanation, evidence:[file:line]}, call_paths:[...], recommended_fix: {where, change, why_safe, test_idea} or null, label, label_reason, agent_brief (markdown string or null), open_questions:[...]}. Then print as your final message exactly one line: `REPORT RESULT_SUBMITTED .routing/evidence/ord-gh18-triage-r1.json` (or `REPORT BLOCKED <reason>` / `REPORT NEEDS_DECISION <question>`).",
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "pane_id": "w6:pA",
+ "setting_overrides": {
+  "harness": "claude",
+  "model": "claude-fable-5-2",
+  "effort": "high",
+  "source": "user prompt (MODEL-1 prompt override)"
+ }
+}

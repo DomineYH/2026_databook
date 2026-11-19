@@ -1,0 +1,81 @@
+{
+ "task_id": "gh-9,gh-11",
+ "order_id": "ord-gh9-11-impl-r1",
+ "order_revision": 1,
+ "role_id": "implementer",
+ "purpose": "implementation",
+ "at_stage": "implement_and_verify",
+ "run_when": "now",
+ "objective": "Fix GitHub issues #9 and #11 in the ebook viewer (web/), one commit per issue on branch fix/issues-9-11. #9: when the browser lacks `inert`, keep Tab/Shift+Tab inside the open TOC panel and zoom overlay. #11: make the next/prev buttons and ArrowRight/ArrowLeft turn pages even when the book is tiny (viewport ~1440x160).",
+ "acceptance_criteria": [
+  "#9: with `inert` unsupported (simulated), Tab and Shift+Tab cycle only among the open overlay's links/buttons: TOC (15 links) and zoom overlay (1 close button)",
+  "#9: in browsers that support `inert`, the new Tab branch never runs (feature check inside the handler)",
+  "#9: Esc closing, focus return to the opening button on close, and ArrowLeft/ArrowRight behave exactly as before",
+  "#11: at viewport 1440x160 the next/prev buttons and ArrowRight/ArrowLeft turn pages",
+  "#11: at 1440x900 (two-page spread) and 390x844 (single page) buttons and arrow keys still turn pages",
+  "#11: a click in the middle of a page still does NOT turn it; corner clicks and hover corner previews behave as before",
+  "No browser console errors; `cd web && npm test && npm run build` and `cd web && npm run lint` pass"
+ ],
+ "input_refs": [
+  "GitHub issue #9 body + triage comment (gh issue view 9 --comments)",
+  "GitHub issue #11 body + triage comment (gh issue view 11 --comments)",
+  "git show 13dd858 (earlier flipNext/flipPrev wrapper)",
+  "web/src/Viewer.tsx",
+  "web/src/book.ts",
+  "web/src/book.test.ts",
+  "web/node_modules/page-flip/src/Flip/Flip.ts"
+ ],
+ "workspace": "/mnt/c/dev/2026_databook-wt/gh-9-11",
+ "input_version": "b2e8d8c613fadee1700f05b5be21381dbe0181f4",
+ "read_scope": [
+  "repository:read-only"
+ ],
+ "write_scope": [
+  "web/src/Viewer.tsx",
+  "web/src/book.ts",
+  "web/src/book.test.ts",
+  ".routing/tasks/ord-gh9-11-impl-r1.report.json"
+ ],
+ "allowed_actions": [
+  "read/search files",
+  "edit files in write_scope",
+  "gh issue view (read-only)",
+  "git show/log/diff/status",
+  "git add + git commit on branch fix/issues-9-11 only",
+  "cd web && npx vitest run src/book.test.ts",
+  "cd web && npm test && npm run build",
+  "cd web && npm run lint",
+  "cd web && npm run preview (local server; stop it when done)",
+  "Playwright browser tools against the local preview URL only"
+ ],
+ "constraints_and_local_discretion": [
+  "You are a WORKER executing this order. The repository CLAUDE.md describes the host/coordinator; its 'never write product code' and 'use herdr workers' rules apply to the host, not to you. Do not launch agents, subagents, herdr panes or workers.",
+  "Testing mode test_first (host-accepted). #9: first add vitest cases in web/src/book.test.ts for a new pure helper in web/src/book.ts (e.g. nextTrapIndex(index, count, backward)); run them and see them fail for the intended reason (wrong/missing result, not a syntax or environment error); then implement. #11: first reproduce in the browser at 1440x160 that the next button / ArrowRight does not turn the page, then fix and re-check.",
+  "#9 design: helper cycles: forward from last -> 0, backward from 0 -> last; index -1 (focus outside overlay): forward -> 0, backward -> count-1; count 1 stays 0. In Viewer.tsx onKey (around line 176) add the Tab branch BEFORE the `e.target instanceof HTMLInputElement` early return: when e.key === 'Tab' && an overlay is open && !('inert' in HTMLElement.prototype): collect `.overlay a, .overlay button` (verify the real overlay selector in the JSX), find document.activeElement's index, preventDefault(), focus the element at the helper's index. Handle every Tab press (not only at the ends): Safari's default Tab skips links. Do not block altKey.",
+  "#11 design: inside onInit (Viewer.tsx ~105-130), next to the existing patches, restore the wrapper from `git show 13dd858`: wrap controller.flipNext and controller.flipPrev so that during the call settings.disableFlipByClick is false and a finally block sets it back to true. Add flipNext/flipPrev to the getFlipController() type if needed. Keep the existing isPointOnCorners/showCorner/stopMove patches unchanged; add one line to the existing ponytail: comment saying why.",
+  "No new dependencies, no new files, no jsdom/testing-library/e2e tooling, no CSS minimum height. Keep unrelated code untouched. Viewer.tsx must stay readable (it is ~285 lines; 300 is a review signal).",
+  "Commits: one for #9, one for #11, message body explains why; end each message with the line 'Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>'. Do not push, open PRs, comment on issues, or change labels.",
+  "Local discretion: helper name, exact wording of comments/commit messages, order of the two commits."
+ ],
+ "testing_decision_ref": ".routing/tasks/gh-9.json#/testing_decision ; .routing/tasks/gh-11.json#/testing_decision (main checkout)",
+ "verification_plan_ref": ".routing/tasks/gh-9.json#/verification_plan ; .routing/tasks/gh-11.json#/verification_plan (main checkout)",
+ "verification": [
+  "gh9-unit: cd web && npx vitest run src/book.test.ts (record red run then green run)",
+  "gh9-manual: in preview, run `delete HTMLElement.prototype.inert` in the console, open TOC and zoom, remove [inert] attributes, press Tab/Shift+Tab repeatedly; focus never leaves the overlay",
+  "gh11-browser: preview at 1440x160 (before and after), 1440x900, 390x844: buttons + arrow keys turn pages; page-centre click does not; console clean",
+  "repo-test: cd web && npm test && npm run build",
+  "repo-lint: cd web && npm run lint"
+ ],
+ "stop_conditions": [
+  "A change outside write_scope seems necessary",
+  "A new dependency or test infrastructure seems necessary",
+  "An acceptance criterion cannot be met with the given design",
+  "Any existing test or lint check fails for a reason you cannot fix within write_scope",
+  "Two failed fix attempts on the same problem"
+ ],
+ "deliverable": "Two commits on fix/issues-9-11 in /mnt/c/dev/2026_databook-wt/gh-9-11, plus the report file /mnt/c/dev/2026_databook-wt/gh-9-11/.routing/tasks/ord-gh9-11-impl-r1.report.json (JSON: status RESULT_SUBMITTED|NEEDS_DECISION|BLOCKED, order_id, commits [sha+subject], files_changed, verification [check_id, command_or_steps, result, notes] including the red run for #9 and the before/after browser observations for #11, not_run_with_reasons, open_issues, question (for NEEDS_DECISION: question, evidence, consequence_of_guessing, recommendation)). Then print as your final message exactly one line: `REPORT <status> .routing/tasks/ord-gh9-11-impl-r1.report.json`.",
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "pane_id": "w6:p3"
+}

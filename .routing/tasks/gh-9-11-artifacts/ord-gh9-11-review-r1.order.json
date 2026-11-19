@@ -1,0 +1,62 @@
+{
+ "task_id": "gh-9,gh-11",
+ "order_id": "ord-gh9-11-review-r1",
+ "order_revision": 1,
+ "role_id": "task-verifier",
+ "purpose": "independent_review",
+ "at_stage": "independent_review_and_ci",
+ "run_when": "now",
+ "objective": "Independently review the fixed diff b2e8d8c..03f9c62 (PR #14, branch fix/issues-9-11) for GitHub issues #9 and #11. You did not write it. Decide PASS/FAIL/BLOCKED against the acceptance criteria with evidence.",
+ "acceptance_criteria": [
+  "#9: with `inert` unsupported (simulated), Tab and Shift+Tab cycle only among the open overlay's links/buttons: TOC (15 links) and zoom overlay (1 close button)",
+  "#9: in browsers that support `inert`, the new Tab branch never runs (feature check inside the handler)",
+  "#9: Esc closing, focus return to the opening button on close, and ArrowLeft/ArrowRight behave exactly as before",
+  "#11: at viewport 1440x160 the next/prev buttons and ArrowRight/ArrowLeft turn pages",
+  "#11: at 1440x900 (two-page spread) and 390x844 (single page) buttons and arrow keys still turn pages",
+  "#11: a click in the middle of a page still does NOT turn it; corner clicks and hover corner previews behave as before",
+  "No browser console errors; `cd web && npm test && npm run build` and `cd web && npm run lint` pass"
+ ],
+ "input_refs": [
+  "git diff b2e8d8c..03f9c62",
+  "git show 6488d90 03f9c62",
+  "gh issue view 9 --comments",
+  "gh issue view 11 --comments",
+  "gh pr view 14",
+  "implementer report: .routing/tasks/ord-gh9-11-impl-r1.report.json (claims, not proof)",
+  "web/node_modules/page-flip/src/Flip/Flip.ts",
+  "git show 13dd858; git show 4788bea (why the wrapper was removed earlier)"
+ ],
+ "workspace": "/mnt/c/dev/2026_databook-wt/gh-9-11",
+ "input_version": "03f9c62",
+ "read_scope": [
+  "repository:read-only"
+ ],
+ "write_scope": [],
+ "allowed_actions": [
+  "read/search files",
+  "git show/diff/log (read-only)",
+  "gh issue view / gh pr view (read-only)",
+  "cd web && npx vitest run src/book.test.ts (focused diagnostic)"
+ ],
+ "constraints_and_local_discretion": [
+  "Read-only: do not edit, stage, commit, push, comment on GitHub, or start servers/agents. The repository CLAUDE.md describes the host/coordinator, not you.",
+  "Review for correctness: focus trap edge cases (focus outside overlay, 0 or 1 focusable, ordering vs the Escape and HTMLInputElement checks, feature detection, Shift+Tab, altKey, overlay selector matching the JSX), and the flip wrapper (settings restored on throw, does the setting matter elsewhere synchronously, interaction with the existing isPointOnCorners/showCorner/stopMove patches, swipes, turnToPage/flip(page) paths, why 4788bea removed it and whether that reason still holds).",
+  "Check that tests assert requirements, not the implementation; flag missing cases that matter. Check scope: only web/src/Viewer.tsx, book.ts, book.test.ts; no new deps.",
+  "Report only actionable findings with file:line and a concrete failure scenario; separate pre-existing issues. Viewer.tsx is 305 lines (300 is a review signal, not a limit): say whether a split is warranted."
+ ],
+ "testing_decision_ref": ".routing/tasks/gh-9.json#/testing_decision ; .routing/tasks/gh-11.json#/testing_decision (main checkout)",
+ "verification_plan_ref": ".routing/tasks/gh-9.json#/verification_plan ; .routing/tasks/gh-11.json#/verification_plan (main checkout)",
+ "verification": [
+  "review of fixed diff b2e8d8c..03f9c62",
+  "optional focused unit run"
+ ],
+ "stop_conditions": [
+  "the diff under review differs from 03f9c62 (stale input)",
+  "you would need to write anything to decide"
+ ],
+ "deliverable": "Final message only (no files): a block starting with the line `REVIEW_BEGIN` and ending with `REVIEW_END`, containing: verdict PASS|FAIL|BLOCKED, reviewed_revision, findings [severity important|nit|pre_existing, file:line, summary, failure_scenario], criteria_check (each acceptance criterion -> met/unmet/unverifiable + evidence), checks_run with results. After REVIEW_END print exactly: `REPORT RESULT_SUBMITTED review` (or `REPORT BLOCKED review`).",
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "pane_id": "w6:p4"
+}

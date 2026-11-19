@@ -1,0 +1,81 @@
+{
+ "task_id": "gh-18,gh-19",
+ "order_id": "ord-gh18-19-repair-r1",
+ "order_revision": 1,
+ "role_id": "implementer",
+ "purpose": "repair",
+ "at_stage": "conditional_repair",
+ "run_when": "now",
+ "objective": "Fix the review findings on PR #21: (important) at 390x844 a short drag released while a key/button-triggered backward turn is still animating cancels that turn (stays #/p/45; base went to #/p/44) and leaves the turn's animation callback pending, which can later consume a new gesture's calculation; (nit) the comment/threshold wording. Add ONE new commit on fix/issues-18-19 (do not amend) and push it.",
+ "acceptance_criteria": [
+  "#19: 1440x160, #/p/45, one single-step mouse move onto the bottom-right book corner (3px inside), wait 300ms, no further mouse event, setViewportSize 60x160 -> hash stays #/p/45 (before: #/p/46). Same for top-right (before 46), bottom-left (before 42), and the reverse switch 60x160 -> 1440x160 from bottom-right (before 46).",
+  "#18: 390x844, #/p/45: drag from the left-bottom corner +40px (15 steps) and +8px, and left-top +40px, mouse and touch -> stays #/p/45 (before: #/p/44). A backward drag past the middle of the visible page (e.g. +220px or +300px in 15 steps) still turns to #/p/44; a left corner click still turns to #/p/44.",
+  "#15 unchanged: 1440x160 hover a corner then one single-step move to the window centre -> #/p/45.",
+  "#11 unchanged: 1440x160 prev/next buttons and ArrowLeft/ArrowRight turn pages.",
+  "1440x900 and 390x844: hover preview appears and returns; corner click turns; a drag past the spine turns; a short drag returns; right-side behaviour at 390x844 unchanged.",
+  "A hash jump (location.hash = '#/p/80') still lands on #/p/80.",
+  "No browser console errors except the local-preview 404 for /_vercel/insights/script.js (pre-existing).",
+  "`cd web && npm test && npm run build` and `cd web && npm run lint` pass.",
+  "Reviewer overlap scenario: 390x844, #/p/45, pointer 8px inside the bottom-left corner, press ArrowLeft, immediately press, drag right 12px and release while the key turn is animating -> ends on #/p/44 (same as base 39944ce), 3/3.",
+  "Follow-up: right after that short release, press again and make the first move toward the right side -> no turn to #/p/46 while the mouse is still held (no stale callback consuming the new fold).",
+  "An isolated short backward drag (no animation in flight) still stays on #/p/45."
+ ],
+ "input_refs": [
+  "review findings (read them): /mnt/c/dev/2026_databook/.routing/tasks/gh-18-artifacts/ord-gh18-19-review-r1.review.md",
+  "reviewer scripts you may adapt: /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-review-r1/compare.cjs and verify.cjs (logs alongside)",
+  "your previous report: /mnt/c/dev/2026_databook-wt/gh-18-19/.routing/tasks/ord-gh18-19-impl-r1.report.json",
+  "web/node_modules/page-flip/src/Flip/Flip.ts fold() (reuses the calculation), the animation callback, Render.ts finishAnimation"
+ ],
+ "workspace": "/mnt/c/dev/2026_databook-wt/gh-18-19",
+ "input_version": "e2b53b7",
+ "read_scope": [
+  "repository:read"
+ ],
+ "write_scope": [
+  "web/src/Viewer.tsx",
+  "/mnt/c/dev/2026_databook-wt/gh-18-19/.routing/tasks/ord-gh18-19-repair-r1.report.json",
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh18-19-repair-r1/"
+ ],
+ "allowed_actions": [
+  "read/search files",
+  "edit files in write_scope",
+  "cd web && npm ci (only if web/node_modules is missing in the worktree)",
+  "cd web && npm test / npm run build / npm run lint",
+  "npx vite preview --port 4311 --strictPort (ONLY port 4311; another worker runs in parallel on 4312)",
+  "drive Chromium with the Playwright MCP tools (you own the MCP browser; the other worker uses its own headless browser)",
+  "git add / git commit on branch fix/issues-18-19",
+  "git push origin fix/issues-18-19 (plain push, no force)"
+ ],
+ "testing_mode": "test_first (repair: reproduce the reviewer's overlap scenario on e2b53b7 first, then fix)",
+ "constraints_and_local_discretion": [
+  "You are a WORKER executing this order. The repository CLAUDE.md describes the host/coordinator; its 'never write product code' and 'use herdr workers' rules apply to the host, not to you. Do not launch agents, subagents, herdr panes or workers.",
+  "Work only in /mnt/c/dev/2026_databook-wt/gh-18-19. Never edit the main checkout /mnt/c/dev/2026_databook.",
+  "Keep the wrapper readable: one short comment per rule saying why. No other refactoring. Viewer.tsx is 315 lines; 300 is a review signal, not a limit.",
+  "Out of scope: hiding a preview left on screen at normal sizes, forward-drag behaviour on a single page, node_modules patches, new dependencies, test tooling, CSS.",
+  "Stop the preview server and close the browser when done.",
+  "Local discretion: exact code shape and wording within the design above.",
+  "First reproduce the overlap scenario on e2b53b7 (stays #/p/45) and confirm base 39944ce gives #/p/44 (the reviewer's compare.cjs does both). If it does not reproduce, STOP and report NEEDS_DECISION.",
+  "Preferred fix: in the shortBack case, call the public render.finishAnimation() before dropFold(flip), so a turn already committed by a key/button/click finishes first (its callback turns the page and resets the calculation) and no stale callback stays scheduled; with no animation in flight finishAnimation() is a no-op, so the isolated short drag is unchanged. Verify this in the browser; if it does not give #/p/44 or leaves state inconsistent, choose the smallest alternative (e.g. apply shortBack only when no animation is in flight) and explain why in the report. Do not reach into page-flip private fields unless no public method works.",
+  "Nit: make the comment (and nothing else in the commit history) say the turn happens once the corner is at or past the middle of the visible page; keep the comparator as is.",
+  "Re-run the full acceptance list (the reviewer's verify.cjs covers it) after the fix.",
+  "Commit message: subject in plain English, body explains why, 'Refs #18' line, and end with these two lines exactly:\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01LPmFwaNXbmSn68nUJuz8gK\nPush with a plain `git push`. Do not open PRs, comment on GitHub, or change labels."
+ ],
+ "verification_plan_ref": "/mnt/c/dev/2026_databook/.routing/tasks/gh-18.json#/verification_plan ; gh-19.json#/verification_plan",
+ "verification": [
+  "red: both bugs on unchanged code",
+  "green after each commit",
+  "repo-test: cd web && npm test && npm run build",
+  "repo-lint: cd web && npm run lint"
+ ],
+ "stop_conditions": [
+  "worktree HEAD is not e2b53b7 at start -> BLOCKED",
+  "the overlap does not reproduce -> NEEDS_DECISION",
+  "the fix needs changes outside the stopMove wrapper -> NEEDS_DECISION",
+  "push rejected -> BLOCKED with the error"
+ ],
+ "deliverable": "One new commit on fix/issues-18-19, pushed, plus the report /mnt/c/dev/2026_databook-wt/gh-18-19/.routing/tasks/ord-gh18-19-repair-r1.report.json (same JSON shape as before, including the red overlap run, base comparison, and all re-checked criteria). Do not commit the report. Then print exactly one line: `REPORT <status> .routing/tasks/ord-gh18-19-repair-r1.report.json`.",
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "pane_id": "w6:pC"
+}
