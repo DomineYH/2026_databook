@@ -21,6 +21,8 @@ type PageFlipApi = {
     isPointOnCorners(point: Point): boolean
     showCorner(point: Point): void
     stopMove(): void
+    flipNext(corner?: string): void
+    flipPrev(corner?: string): void
     reset(): void
     setState(state: 'read'): void
     getCalculation(): { getPosition(): { x: number } | null } | null
@@ -104,6 +106,7 @@ export default function Viewer() {
 
   const onInit = useCallback(() => {
     // ponytail: patches page-flip 2.0.x internals; re-check on upgrade.
+    // flipNext/flipPrev are wrapped too: in a window under ~161px tall their fake corner click misses every corner (#11).
     const flip = api()!
     const controller = flip.getFlipController()
     const render = flip.getRender()
@@ -130,6 +133,16 @@ export default function Viewer() {
     // made stopMove throw on every mouse move. Just drop such a fold.
     const stopMove = controller.stopMove.bind(controller)
     controller.stopMove = () => (controller.getCalculation()?.getPosition() ? stopMove() : dropFold(flip))
+    // Buttons, arrow keys and swipes fake a click 10px inside the book's edge; once the corner zone is under 10px that
+    // misses and disableFlipByClick rejects it. Allow clicks only for the duration of these programmatic calls.
+    for (const method of ['flipNext', 'flipPrev'] as const) {
+      const original = controller[method].bind(controller)
+      controller[method] = (corner) => {
+        const settings = flip.getSettings()
+        settings.disableFlipByClick = false
+        try { original(corner) } finally { settings.disableFlipByClick = true }
+      }
+    }
     // A jump may have arrived while the book was mounting; anchor holds the latest target.
     flip.turnToPage(anchor.current - 1)
     reveal(anchor.current)
