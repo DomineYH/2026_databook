@@ -19,6 +19,7 @@ type PageFlipApi = {
   }
   getFlipController(): {
     isPointOnCorners(point: Point): boolean
+    showCorner(point: Point): void
     stopMove(): void
     reset(): void
     setState(state: 'read'): void
@@ -112,10 +113,17 @@ export default function Viewer() {
     const render = flip.getRender()
     // On a single page page-flip tests corners against a virtual two-page book, so the visible page's left corners
     // never count and clicks, buttons, arrow keys and swipes (all corner clicks under disableFlipByClick) could not
-    // go back. Test against the visible page, the book's right half, instead.
+    // go back. Test against the visible page, the book's right half, instead - but not for hover previews, whose
+    // backward fold page-flip maps wrongly and completes as a turn when the pointer leaves.
     const onCorners = controller.isPointOnCorners.bind(controller)
+    let hovering = false
+    const showCorner = controller.showCorner.bind(controller)
+    controller.showCorner = (point) => {
+      hovering = true
+      try { showCorner(point) } finally { hovering = false }
+    }
     controller.isPointOnCorners = (point) => {
-      if (render.getOrientation() !== 'portrait') return onCorners(point)
+      if (hovering || render.getOrientation() !== 'portrait') return onCorners(point)
       const { pageWidth, height } = render.getRect()
       const { x, y } = render.convertToBook(point)
       const px = x - pageWidth
