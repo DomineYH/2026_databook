@@ -8,8 +8,14 @@ type PageFlipApi = {
   turnToPage(index: number): void
   getSettings(): Record<string, unknown>
   update(): void
-  getRender(): { finishAnimation(): void }
-  getFlipController(): Record<'flipNext' | 'flipPrev', (corner?: string) => void> & { stopMove(): void }
+  getRender(): { finishAnimation(): void; setBottomPage(p: null): void; setFlippingPage(p: null): void; clearShadow(): void }
+  getFlipController(): Record<'flipNext' | 'flipPrev', (corner?: string) => void> & {
+    stopMove(): void
+    reset(): void
+    setState(state: 'read'): void
+    getCalculation(): { getPosition(): { x: number } | null } | null
+  }
+  getUI(): { touchPoint: unknown }
   userStop(point: { x: number; y: number }, isSwipe: boolean): void
 }
 type FlipEvent = { data: unknown }
@@ -21,13 +27,24 @@ const FlipBook = HTMLFlipBook as unknown as ComponentType<Record<string, unknown
 // maxWidth/maxHeight stay above it (page-flip resets them to 2000 otherwise), so CSS alone sizes the book.
 const modeSettings = (spread: boolean) => ({ usePortrait: !spread, minWidth: spread ? 1 : 100000 })
 
-/** Bring page-flip to rest before we move it ourselves: finish a turn, release a held drag or corner preview, and end
- *  the pointer gesture (userStop with isSwipe=true only clears it). Left running, they land on the wrong page later. */
+/** page-flip's own end-of-turn cleanup, for whatever fold is left on screen. */
+function dropFold(flip: PageFlipApi) {
+  const render = flip.getRender()
+  render.setBottomPage(null)
+  render.setFlippingPage(null)
+  render.clearShadow()
+  flip.getFlipController().setState('read')
+  flip.getFlipController().reset()
+}
+
+/** Bring page-flip to rest before we move it ourselves. Anything left running lands on the wrong page later. */
 function settle(flip: PageFlipApi) {
+  flip.getRender().finishAnimation() // a turn in flight
+  flip.getFlipController().stopMove() // a held drag or corner preview
   flip.getRender().finishAnimation()
-  flip.getFlipController().stopMove()
-  flip.getRender().finishAnimation()
-  flip.userStop({ x: 0, y: 0 }, true)
+  dropFold(flip)
+  flip.userStop({ x: 0, y: 0 }, true) // end the pointer gesture without acting on it
+  flip.getUI().touchPoint = null // and a pending swipe, which would otherwise flip on touchend
 }
 
 const STORAGE_KEY = 'databook:lastPage'
@@ -92,6 +109,10 @@ export default function Viewer() {
         try { original(corner) } finally { settings.disableFlipByClick = true }
       }
     }
+    // A fold started on a corner has no position until its first frame; leaving the corner (or a drag) before that
+    // made stopMove throw on every mouse move. Just drop such a fold.
+    const stopMove = controller.stopMove.bind(controller)
+    controller.stopMove = () => (controller.getCalculation()?.getPosition() ? stopMove() : dropFold(flip))
   }, [])
 
   // page-flip reads settings only at init and never stops its render loop on unmount, so switch modes on the live instance.
