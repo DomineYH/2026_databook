@@ -41,6 +41,10 @@ export const isSpread = (stageWidth: number, stageHeight: number) => stageWidth 
 export const keepAnchor = (anchor: number, shown: number, spread: boolean) =>
   spread && spreadOf(shown).includes(anchor) ? anchor : shown
 
+/** 오버레이 안 포커스 순환: 지금 index(-1이면 밖)에서 Tab/Shift+Tab 다음 index */
+export const nextTrapIndex = (index: number, count: number, backward: boolean) =>
+  index < 0 ? (backward ? count - 1 : 0) : (index + (backward ? count - 1 : 1)) % count
+
 export const pageSrc = (page: number) => `/pages/${String(page).padStart(3, '0')}.webp`
 
 export function pageAlt(page: number): string {

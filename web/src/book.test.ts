@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CHAPTERS, PAGE_COUNT, chapterOf, isSpread, keepAnchor, pageAlt, pageSrc, parsePageHash, spreadOf } from './book'
+import { CHAPTERS, PAGE_COUNT, chapterOf, isSpread, keepAnchor, nextTrapIndex, pageAlt, pageSrc, parsePageHash, spreadOf } from './book'
 
 describe('parsePageHash', () => {
   it('reads a page number', () => expect(parsePageHash('#/p/45')).toBe(45))
@@ -51,6 +51,26 @@ describe('keepAnchor', () => {
     expect(keepAnchor(45, 42, true)).toBe(42)
   })
   it('always follows page-flip on single pages', () => expect(keepAnchor(45, 44, false)).toBe(44))
+})
+
+describe('nextTrapIndex', () => {
+  it('cycles forward, wrapping from the last to the first', () => {
+    expect(nextTrapIndex(0, 15, false)).toBe(1)
+    expect(nextTrapIndex(14, 15, false)).toBe(0)
+  })
+  it('cycles backward, wrapping from the first to the last', () => {
+    expect(nextTrapIndex(5, 15, true)).toBe(4)
+    expect(nextTrapIndex(0, 15, true)).toBe(14)
+  })
+  it('stays on a single element', () => {
+    expect(nextTrapIndex(0, 1, false)).toBe(0)
+    expect(nextTrapIndex(0, 1, true)).toBe(0)
+  })
+  it('enters at either end when focus is outside (-1)', () => {
+    expect(nextTrapIndex(-1, 15, false)).toBe(0)
+    expect(nextTrapIndex(-1, 15, true)).toBe(14)
+    expect(nextTrapIndex(-1, 1, true)).toBe(0)
+  })
 })
 
 describe('page assets', () => {

@@ -1,6 +1,6 @@
 import HTMLFlipBook from 'react-pageflip'
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode, type Ref } from 'react'
-import { CHAPTERS, LINKS, PAGE_COUNT, TITLE, chapterOf, isSpread, keepAnchor, pageAlt, pageHash, pageSrc, parsePageHash, spreadOf } from './book'
+import { CHAPTERS, LINKS, PAGE_COUNT, TITLE, chapterOf, isSpread, keepAnchor, nextTrapIndex, pageAlt, pageHash, pageSrc, parsePageHash, spreadOf } from './book'
 
 type PageFlipApi = {
   flipNext(): void
@@ -175,6 +175,13 @@ export default function Viewer() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { setZoomed(null); setTocOpen(false) }
+      // Without inert the page behind stays tabbable; trap every Tab, since Safari's default Tab skips links.
+      if (e.key === 'Tab' && (zoomed || tocOpen) && !('inert' in HTMLElement.prototype)) {
+        const items = [...document.querySelectorAll<HTMLElement>('.overlay a, .overlay button')]
+        e.preventDefault()
+        items[nextTrapIndex(items.indexOf(document.activeElement as HTMLElement), items.length, e.shiftKey)]?.focus()
+        return
+      }
       if (e.target instanceof HTMLInputElement) return
       if (zoomed || tocOpen) return
       if (e.key === 'ArrowRight') api()?.flipNext()
