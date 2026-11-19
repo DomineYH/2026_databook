@@ -1,6 +1,6 @@
 import HTMLFlipBook from 'react-pageflip'
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode, type Ref } from 'react'
-import { CHAPTERS, LINKS, PAGE_COUNT, TITLE, chapterOf, isSpread, pageAlt, pageHash, pageSrc, parsePageHash, spreadOf } from './book'
+import { CHAPTERS, LINKS, PAGE_COUNT, TITLE, chapterOf, isSpread, keepAnchor, pageAlt, pageHash, pageSrc, parsePageHash, spreadOf } from './book'
 
 type PageFlipApi = {
   flipNext(): void
@@ -8,6 +8,7 @@ type PageFlipApi = {
   turnToPage(index: number): void
   getSettings(): Record<string, unknown>
   update(): void
+  getFlipController(): Record<'flipNext' | 'flipPrev', (corner?: string) => void>
 }
 type FlipEvent = { data: unknown }
 type InitEvent = { data: { page: number } }
@@ -15,6 +16,7 @@ type InitEvent = { data: { page: number } }
 const FlipBook = HTMLFlipBook as unknown as ComponentType<Record<string, unknown> & { children: ReactNode; ref: Ref<{ pageFlip(): PageFlipApi }> }>
 
 // page-flip picks its mode from width alone; a huge minWidth forces single pages, usePortrait=false forces spreads.
+// maxWidth/maxHeight stay above it (page-flip resets them to 2000 otherwise), so CSS alone sizes the book.
 const modeSettings = (spread: boolean) => ({ usePortrait: !spread, minWidth: spread ? 1 : 100000 })
 
 const STORAGE_KEY = 'databook:lastPage'
@@ -48,9 +50,13 @@ export default function Viewer() {
   const overlayOpen = tocOpen || zoomed !== null
 
   const api = () => bookRef.current?.pageFlip()
+  // The 쪽 the reader asked for. In a spread page-flip reports the left 쪽, so keep this while it is still on screen.
+  const anchor = useRef(page)
+  const spreadRef = useRef(spread)
 
   const onFlip = useCallback((e: FlipEvent) => {
-    const p = Number(e.data) + 1
+    const shown = Number(e.data) + 1
+    const p = (anchor.current = keepAnchor(anchor.current, shown, spreadRef.current === true))
     setPage(p)
     reveal(p)
     history.replaceState(null, '', pageHash(p))
@@ -61,14 +67,30 @@ export default function Viewer() {
     const p = e.data.page + 1
     reveal(p)
     history.replaceState(null, '', pageHash(p))
+    // Buttons, arrow keys and swipes turn pages by faking a corner click, which disableFlipByClick rejects whenever
+    // the fake point misses a corner (always for "previous" on a single page). Let those calls through.
+    // ponytail: patches react-pageflip/page-flip 2.0.x internals; re-check on upgrade.
+    const flip = api()!
+    const controller = flip.getFlipController()
+    for (const method of ['flipNext', 'flipPrev'] as const) {
+      const original = controller[method].bind(controller)
+      controller[method] = (corner) => {
+        const settings = flip.getSettings()
+        settings.disableFlipByClick = false
+        try { original(corner) } finally { settings.disableFlipByClick = true }
+      }
+    }
   }, [])
 
   // page-flip reads settings only at init and never stops its render loop on unmount, so switch modes on the live instance.
   useEffect(() => {
+    spreadRef.current = spread
     const flip = api()
     if (!flip || spread === null) return
+    const keep = anchor.current
     Object.assign(flip.getSettings(), modeSettings(spread))
     flip.update()
+    flip.turnToPage(keep - 1) // update() re-shows the spread's left 쪽; return to the reader's
   }, [spread])
 
   useEffect(() => {
@@ -81,7 +103,7 @@ export default function Viewer() {
   useEffect(() => {
     const go = () => {
       const p = parsePageHash(location.hash)
-      if (p) api()?.turnToPage(p - 1)
+      if (p) { anchor.current = p; api()?.turnToPage(p - 1) }
       setTocOpen(false)
     }
     addEventListener('hashchange', go)
@@ -150,7 +172,7 @@ export default function Viewer() {
         {spread !== null && (
           <FlipBook ref={bookRef} className="book"
             width={800} height={1132} size="stretch" autoSize={false} {...modeSettings(spread)}
-            maxWidth={1000} minHeight={1} maxHeight={1415}
+            maxWidth={100000} minHeight={1} maxHeight={100000}
             showCover mobileScrollSupport={false} disableFlipByClick clickEventForward
             maxShadowOpacity={0.4} flippingTime={600} startPage={page - 1}
             onFlip={onFlip} onInit={onInit}>

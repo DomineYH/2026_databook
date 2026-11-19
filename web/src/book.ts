@@ -37,6 +37,10 @@ export const SPREAD_RATIO = (1600 * 2) / 2265
 
 export const isSpread = (stageWidth: number, stageHeight: number) => stageWidth / stageHeight >= SPREAD_RATIO
 
+/** page-flip이 보고한 쪽(펼침면이면 왼쪽 쪽)에 대해, 독자가 고른 쪽이 아직 화면에 있으면 그 쪽을 유지한다. */
+export const keepAnchor = (anchor: number, shown: number, spread: boolean) =>
+  spread && spreadOf(shown).includes(anchor) ? anchor : shown
+
 export const pageSrc = (page: number) => `/pages/${String(page).padStart(3, '0')}.webp`
 
 export function pageAlt(page: number): string {
