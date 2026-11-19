@@ -1,6 +1,6 @@
 import HTMLFlipBook from 'react-pageflip'
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode, type Ref } from 'react'
-import { CHAPTERS, LINKS, PAGE_COUNT, TITLE, chapterOf, isSpread, keepAnchor, pageAlt, pageHash, pageSrc, parsePageHash, spreadOf } from './book'
+import { CHAPTERS, LINKS, PAGE_COUNT, TITLE, chapterOf, isSpread, keepAnchor, nextTrapIndex, pageAlt, pageHash, pageSrc, parsePageHash, spreadOf } from './book'
 
 type PageFlipApi = {
   flipNext(): void
@@ -21,6 +21,9 @@ type PageFlipApi = {
     isPointOnCorners(point: Point): boolean
     showCorner(point: Point): void
     stopMove(): void
+    flipNext(corner?: string): void
+    flipPrev(corner?: string): void
+    getDirectionByPoint(point: Point): number
     reset(): void
     setState(state: 'read'): void
     getCalculation(): { getPosition(): { x: number } | null } | null
@@ -104,6 +107,7 @@ export default function Viewer() {
 
   const onInit = useCallback(() => {
     // ponytail: patches page-flip 2.0.x internals; re-check on upgrade.
+    // flipNext/flipPrev are wrapped too: in a window under ~161px tall their fake corner click misses every corner (#11).
     const flip = api()!
     const controller = flip.getFlipController()
     const render = flip.getRender()
@@ -130,6 +134,20 @@ export default function Viewer() {
     // made stopMove throw on every mouse move. Just drop such a fold.
     const stopMove = controller.stopMove.bind(controller)
     controller.stopMove = () => (controller.getCalculation()?.getPosition() ? stopMove() : dropFold(flip))
+    // Buttons, arrow keys and swipes fake a click 10px inside the book's edge; once the corner zone is under 10px that
+    // misses and disableFlipByClick rejects it. Allow clicks only for the duration of these programmatic calls.
+    // Once a page is narrower than that inset the fake point also lands on the wrong side of the spine and page-flip
+    // reads it as the opposite direction, so pin the direction to the one asked for (FlipDirection: 0 forward, 1 back).
+    const byPoint = controller.getDirectionByPoint
+    for (const [method, direction] of [['flipNext', 0], ['flipPrev', 1]] as const) {
+      const original = controller[method].bind(controller)
+      controller[method] = (corner) => {
+        const settings = flip.getSettings()
+        settings.disableFlipByClick = false
+        controller.getDirectionByPoint = () => direction
+        try { original(corner) } finally { settings.disableFlipByClick = true; controller.getDirectionByPoint = byPoint }
+      }
+    }
     // A jump may have arrived while the book was mounting; anchor holds the latest target.
     flip.turnToPage(anchor.current - 1)
     reveal(anchor.current)
@@ -175,6 +193,13 @@ export default function Viewer() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { setZoomed(null); setTocOpen(false) }
+      // Without inert the page behind stays tabbable; trap every Tab, since Safari's default Tab skips links.
+      if (e.key === 'Tab' && (zoomed || tocOpen) && !('inert' in HTMLElement.prototype)) {
+        const items = [...document.querySelectorAll<HTMLElement>('.overlay a, .overlay button')]
+        e.preventDefault()
+        items[nextTrapIndex(items.indexOf(document.activeElement as HTMLElement), items.length, e.shiftKey)]?.focus()
+        return
+      }
       if (e.target instanceof HTMLInputElement) return
       if (zoomed || tocOpen) return
       if (e.key === 'ArrowRight') api()?.flipNext()
