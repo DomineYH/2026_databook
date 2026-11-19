@@ -10,6 +10,7 @@ type PageFlipApi = {
   update(): void
   getRender(): { finishAnimation(): void }
   getFlipController(): Record<'flipNext' | 'flipPrev', (corner?: string) => void> & { stopMove(): void }
+  userStop(point: { x: number; y: number }, isSwipe: boolean): void
 }
 type FlipEvent = { data: unknown }
 type InitEvent = { data: { page: number } }
@@ -19,6 +20,15 @@ const FlipBook = HTMLFlipBook as unknown as ComponentType<Record<string, unknown
 // page-flip picks its mode from width alone; a huge minWidth forces single pages, usePortrait=false forces spreads.
 // maxWidth/maxHeight stay above it (page-flip resets them to 2000 otherwise), so CSS alone sizes the book.
 const modeSettings = (spread: boolean) => ({ usePortrait: !spread, minWidth: spread ? 1 : 100000 })
+
+/** Bring page-flip to rest before we move it ourselves: finish a turn, release a held drag or corner preview, and end
+ *  the pointer gesture (userStop with isSwipe=true only clears it). Left running, they land on the wrong page later. */
+function settle(flip: PageFlipApi) {
+  flip.getRender().finishAnimation()
+  flip.getFlipController().stopMove()
+  flip.getRender().finishAnimation()
+  flip.userStop({ x: 0, y: 0 }, true)
+}
 
 const STORAGE_KEY = 'databook:lastPage'
 const PAGES = Array.from({ length: PAGE_COUNT }, (_, i) => i + 1)
@@ -87,13 +97,7 @@ export default function Viewer() {
   // page-flip reads settings only at init and never stops its render loop on unmount, so switch modes on the live instance.
   useEffect(() => {
     const flip = api()
-    if (flip) {
-      // Settle a turn, held drag or corner preview under the old mode first; left running it would land past the
-      // new layout's spreads (stopping page-flip) or be recorded with the wrong mode.
-      flip.getRender().finishAnimation()
-      flip.getFlipController().stopMove()
-      flip.getRender().finishAnimation()
-    }
+    if (flip) settle(flip) // under the old mode; a turn landing after the switch overruns the new spreads and stops page-flip
     spreadRef.current = spread
     if (!flip || spread === null) return
     const keep = anchor.current
@@ -112,7 +116,12 @@ export default function Viewer() {
   useEffect(() => {
     const go = () => {
       const p = parsePageHash(location.hash)
-      if (p) { anchor.current = p; api()?.turnToPage(p - 1) }
+      const flip = api()
+      if (p && flip) {
+        settle(flip)
+        anchor.current = p
+        flip.turnToPage(p - 1)
+      }
       setTocOpen(false)
     }
     addEventListener('hashchange', go)
