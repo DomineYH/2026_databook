@@ -8,6 +8,7 @@ type PageFlipApi = {
   turnToPage(index: number): void
   getSettings(): Record<string, unknown>
   update(): void
+  getRender(): { finishAnimation(): void }
   getFlipController(): Record<'flipNext' | 'flipPrev', (corner?: string) => void>
 }
 type FlipEvent = { data: unknown }
@@ -29,8 +30,9 @@ function initialPage(): number {
 }
 
 // Images get their src only near the current 쪽: loading="lazy" still fetched ~150 hidden pages up front.
+// From 3 back: the reader's 쪽 may be a spread's right page, and turning back must show the previous spread's left page.
 function reveal(page: number) {
-  for (let p = page - 2; p <= page + 4; p++) {
+  for (let p = page - 3; p <= page + 4; p++) {
     const img = document.querySelector<HTMLImageElement>(`img[data-src="${pageSrc(p)}"]`)
     if (img && !img.getAttribute('src')) img.src = img.dataset.src!
   }
@@ -87,6 +89,7 @@ export default function Viewer() {
     spreadRef.current = spread
     const flip = api()
     if (!flip || spread === null) return
+    flip.getRender().finishAnimation() // a turn still animating would land past the new layout's spreads and stop page-flip
     const keep = anchor.current
     Object.assign(flip.getSettings(), modeSettings(spread))
     flip.update()
