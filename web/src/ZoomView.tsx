@@ -64,7 +64,11 @@ export default function ZoomView({ pages, onClose }: { pages: number[]; onClose:
     el.addEventListener('touchmove', onTouch, { passive: false })
     el.addEventListener('gesturestart', stop) // Safari's pinch
     addEventListener('keydown', onKey)
+    // A wider fit (window resize, phone rotation) lowers the maximum; re-clamp the current zoom.
+    const resize = new ResizeObserver(() => zoomAtCenter(zoom.current))
+    resize.observe(scroller.current!)
     return () => {
+      resize.disconnect()
       el.removeEventListener('wheel', onWheel)
       el.removeEventListener('touchstart', onTouch)
       el.removeEventListener('touchmove', onTouch)
