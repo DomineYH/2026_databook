@@ -44,9 +44,12 @@ html, body, #root { margin: 0; height: 100%; overflow: hidden; }
 .bottom input::placeholder { color: var(--text); }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.stage { flex: 1; min-height: 0; display: grid; place-items: center; padding: 8px; }
-/* 펼침면(두 쪽, A4 1:1.414)이 화면 높이를 넘지 않을 만큼만 넓게 */
-.book { width: min(100%, calc((100dvh - var(--bars) - 16px) * 1.414)) !important; } /* page-flip sets width:100% inline */
+.stage { flex: 1; min-height: 0; display: grid; place-items: center; padding: 8px; container-type: size; }
+/* 책 폭 = 무대에 들어가는 가장 큰 크기 (쪽 비율 1600:2265) */
+.book.spread { width: min(100cqw, 100cqh * 1.4128); }
+.book.single { width: min(100cqw, 100cqh * 0.7064); }
+/* page-flip writes min-width/min-height inline from its settings (huge in single mode). */
+.book { min-width: 0 !important; min-height: 0 !important; }
 
 .page { background: #fff; }
 .page img { width: 100%; height: 100%; display: block; object-fit: contain; user-select: none; }

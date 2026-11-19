@@ -1,14 +1,14 @@
 import HTMLFlipBook from 'react-pageflip'
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode, type Ref } from 'react'
-import { CHAPTERS, LINKS, PAGE_COUNT, TITLE, chapterOf, pageAlt, pageHash, pageSrc, parsePageHash, spreadOf } from './book'
+import { CHAPTERS, LINKS, PAGE_COUNT, TITLE, chapterOf, isSpread, pageAlt, pageHash, pageSrc, parsePageHash, spreadOf } from './book'
 
 type PageFlipApi = {
   flipNext(): void
   flipPrev(): void
   turnToPage(index: number): void
-  getOrientation(): 'portrait' | 'landscape'
 }
 type FlipEvent = { data: unknown }
+type InitEvent = { data: { page: number } }
 // react-pageflip's typings mark every setting as required; we pass only the ones we change.
 const FlipBook = HTMLFlipBook as unknown as ComponentType<Record<string, unknown> & { children: ReactNode; ref: Ref<{ pageFlip(): PageFlipApi }> }>
 
@@ -31,9 +31,9 @@ function reveal(page: number) {
 
 export default function Viewer() {
   const bookRef = useRef<{ pageFlip(): PageFlipApi }>(null)
-  const [start] = useState(initialPage)
-  const [page, setPage] = useState(start)
-  const [landscape, setLandscape] = useState(false)
+  const [page, setPage] = useState(initialPage)
+  const stageRef = useRef<HTMLElement>(null)
+  const [spread, setSpread] = useState<boolean | null>(null)
   const [tocOpen, setTocOpen] = useState(false)
   const [zoomed, setZoomed] = useState<number[] | null>(null)
   const [idle, setIdle] = useState(false)
@@ -48,13 +48,18 @@ export default function Viewer() {
     localStorage.setItem(STORAGE_KEY, String(p))
   }, [])
 
-  const onInit = useCallback(() => {
-    setLandscape(api()?.getOrientation() === 'landscape')
-    reveal(start)
-    history.replaceState(null, '', pageHash(start))
-  }, [start])
+  // Fires on first load and after every remount (mode change); fresh <img>s need reveal() again.
+  const onInit = useCallback((e: InitEvent) => {
+    const p = e.data.page + 1
+    reveal(p)
+    history.replaceState(null, '', pageHash(p))
+  }, [])
 
-  const onOrientation = useCallback((e: FlipEvent) => setLandscape(e.data === 'landscape'), [])
+  useEffect(() => {
+    const observer = new ResizeObserver(([entry]) => setSpread(isSpread(entry.contentRect.width, entry.contentRect.height)))
+    observer.observe(stageRef.current!)
+    return () => observer.disconnect()
+  }, [])
 
   // Every link (목차 패널, 3쪽 목차, 쪽 번호 입력) just changes the hash.
   useEffect(() => {
@@ -99,7 +104,7 @@ export default function Viewer() {
     </div>
   )), [])
 
-  const visible = landscape ? spreadOf(page) : [page]
+  const visible = spread ? spreadOf(page) : [page]
   const chapter = chapterOf(page)
 
   return (
@@ -109,14 +114,19 @@ export default function Viewer() {
         <span className="chapter">{chapter?.title ?? ''}</span>
       </header>
 
-      <main className="stage">
-        <FlipBook ref={bookRef} className="book" width={800} height={1132} size="stretch"
-          minWidth={260} maxWidth={1000} minHeight={368} maxHeight={1415}
-          showCover usePortrait mobileScrollSupport={false} disableFlipByClick clickEventForward
-          maxShadowOpacity={0.4} flippingTime={600} startPage={start - 1}
-          onFlip={onFlip} onInit={onInit} onChangeOrientation={onOrientation}>
-          {pages}
-        </FlipBook>
+      <main className="stage" ref={stageRef}>
+        {/* page-flip picks its mode from width alone, so we decide and remount it (keeping the 쪽) when the mode changes:
+            a huge minWidth forces single-page mode, usePortrait={false} forces spreads. */}
+        {spread !== null && (
+          <FlipBook key={spread ? 'spread' : 'single'} ref={bookRef} className={`book ${spread ? 'spread' : 'single'}`}
+            width={800} height={1132} size="stretch" autoSize={false}
+            minWidth={spread ? 1 : 100000} maxWidth={1000} minHeight={1} maxHeight={1415}
+            showCover usePortrait={!spread} mobileScrollSupport={false} disableFlipByClick clickEventForward
+            maxShadowOpacity={0.4} flippingTime={600} startPage={page - 1}
+            onFlip={onFlip} onInit={onInit}>
+            {pages}
+          </FlipBook>
+        )}
       </main>
 
       <nav className="bar bottom" aria-label="쪽 이동">
