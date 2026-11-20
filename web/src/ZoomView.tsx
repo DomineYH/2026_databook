@@ -37,7 +37,7 @@ export default function ZoomView({ pages, onClose }: { pages: number[]; onClose:
   // Native, non-passive listeners: React's wheel and touch handlers are passive and cannot stop the browser's own zoom.
   useEffect(() => {
     const el = root.current!
-    let pinch: { distance: number; zoom: number } | null = null
+    let pinch: { distance: number; zoom: number; span: number } | null = null
     const span = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY)
     const onWheel = (e: WheelEvent) => {
       if (!e.ctrlKey && !e.metaKey) return
@@ -48,7 +48,8 @@ export default function ZoomView({ pages, onClose }: { pages: number[]; onClose:
       if (e.touches.length !== 2) { pinch = null; return }
       if (e.cancelable) e.preventDefault() // not cancelable mid-fling; touch-action already blocks the browser's pinch there
       const d = span(e.touches)
-      if (!pinch || e.type === 'touchstart') { pinch = { distance: d, zoom: zoom.current }; return }
+      if (!pinch || e.type === 'touchstart') { pinch = { distance: d, zoom: zoom.current, span: d }; return }
+      pinch.span = d
       const [a, b] = [e.touches[0], e.touches[1]]
       zoomTo(pinchZoom(pinch.zoom, pinch.distance, d, fitWidth()), (a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2)
     }
@@ -68,7 +69,8 @@ export default function ZoomView({ pages, onClose }: { pages: number[]; onClose:
     const resize = new ResizeObserver(() => {
       const was = zoom.current
       zoomAtCenter(was)
-      if (pinch) pinch.zoom *= zoom.current / was // a held pinch continues from the re-clamped zoom
+      // A held pinch continues from the re-clamped zoom, whatever control set it, at the fingers' current span.
+      if (pinch && zoom.current !== was) pinch = { distance: pinch.span, zoom: zoom.current, span: pinch.span }
     })
     resize.observe(scroller.current!)
     return () => {
