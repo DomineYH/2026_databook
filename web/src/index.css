@@ -95,6 +95,7 @@ html, body, #root { margin: 0; height: 100%; overflow: hidden; }
 }
 .zoom-scroll { height: 100%; overflow: auto; padding-top: 52px; cursor: grab; user-select: none; }
 .zoom-scroll:active { cursor: grabbing; }
+.zoom-scroll:focus-visible { outline-offset: -2px; }
 .zoom img { width: calc(min(100%, 1600px) * var(--zoom, 1)); display: block; margin: 0 auto 8px; }
 
 @media (max-width: 560px) {

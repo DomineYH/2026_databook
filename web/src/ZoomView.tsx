@@ -101,7 +101,7 @@ export default function ZoomView({ pages, onClose }: { pages: number[]; onClose:
         <button onClick={() => zoomAtCenter(zoom.current * STEP)} aria-label="확대">+</button>
         <button onClick={onClose} autoFocus>✕ 닫기</button>
       </div>
-      <div className="zoom-scroll" ref={scroller}
+      <div className="zoom-scroll" ref={scroller} tabIndex={0}
         onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={endDrag} onPointerCancel={endDrag}
         onDoubleClick={(e) => zoomTo(zoom.current > 1 ? 1 : 2, e.clientX, e.clientY)}>
         {pages.map((p) => <img key={p} src={pageSrc(p)} alt={pageAlt(p)} draggable={false} />)}
