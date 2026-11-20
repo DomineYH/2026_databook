@@ -1,0 +1,32 @@
+{
+ "task": "Implement GitHub issue #26 in the static React ebook viewer: in the 크게 보기 zoom overlay (web/src/ZoomView.tsx, added by #23), when the viewport resizes while a two-finger pinch or a mouse drag is held, the gesture continues from stale start values. Fix in ZoomView.tsx only: in the ResizeObserver callback rebase the held pinch (pinch.zoom *= newZoom/oldZoom); make mouse drag stop storing the start scroll and instead move from the live scrollLeft/scrollTop each pointermove, advancing the stored pointer position by what actually scrolled (keep the remainder an edge refused). About 15 lines; zoomTo, zoomAtCenter, zoom.ts and index.css unchanged.",
+ "context": {
+  "changed_paths": [
+   "web/src/ZoomView.tsx (ResizeObserver callback, onPointerDown/onPointerMove, drag ref type)"
+  ],
+  "observed_behavior": "Triage (Claude Fable 5.2, headless Chromium, HEAD 4116ea0): at 390px and 821% with two touches held, resize to 844x390 re-clamps to 379% but narrowing 100->60px leaves 3200px (dead zone down to 46px). Mouse drag at max: scroll 1406/1986 -> 423/841 after resize, then a 1px move jumps to 1405/1985. A scratch-copy build of the recommended patch passed both reproductions (1920px/227%; 422/840), did not interrupt pinches when the observer fires only for a scrollbar, and produced #23 regression probe output identical to HEAD.",
+  "contracts": "No external API. Browser input/focus APIs only. page-flip 2.0.7 vendored and not touched. Static site, no auth, no persisted data, no new dependency.",
+  "test_setup": "vitest pure-function tests (web/src/book.ts, web/src/zoom.ts); no jsdom. UI behaviour verified with scripted Chromium (Playwright, CDP touch emulation) against vite preview, as for PRs #14, #17, #20, #21, #24. CI runs `cd web && npm test && npm run build` and `cd web && npm run lint`; main 4116ea0 passed CI.",
+  "verified_flags": {
+   "security_sensitive": false,
+   "data_sensitive": false,
+   "shared_core_change": false,
+   "production_impact": false,
+   "minor_scope_verified": false,
+   "active_incident_related_to_task": false,
+   "touches_ui": true,
+   "touches_external_api": false,
+   "needs_design": false,
+   "require_independent_review": true
+  },
+  "evidence_gaps": [],
+  "consumers": "Viewer.tsx is the app's single UI component, imported only by web/src/main.tsx; ZoomView.tsx is used only by Viewer.tsx. Nothing is published as a library.",
+  "testing_facts": "No pure function changes; the pinch rebase is one multiplication on effect-local state and the drag reads the DOM, so no unit seam worth extracting. Reproductions are scripted Chromium checks (CDP touch + setViewportSize while touches or mouse button are held); triage scripts exist in the scratchpad. Red on HEAD, green after.",
+  "owner_decisions": "Owner accepted the triage defaults on 2026-11-20: rebase (not cancel) held gestures; include the same-cause drag cases (Ctrl+wheel/key zoom or plain wheel during a held drag). Real-device rotation check is a human step on the PR preview.",
+  "design_evidence": ".routing/evidence/ord-gh26-triage-r1.json; agent brief with 7 acceptance checks posted on issue #26."
+ },
+ "testing_evidence": {
+  "test_seam": "substantial_setup: no unit seam; scripted browser check",
+  "existing_checks": "main 4116ea0 CI passed"
+ }
+}

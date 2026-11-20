@@ -1,0 +1,78 @@
+{
+ "task_id": "gh-27",
+ "order_id": "ord-gh27-impl-r1",
+ "order_revision": 1,
+ "role_id": "implementer",
+ "purpose": "implementation",
+ "at_stage": "implementation",
+ "run_when": "now",
+ "objective": "Implement GitHub issue #27 per the agent brief: while the 크게 보기 or 목차 overlay is open, Tab and Shift+Tab cycle inside it in every browser. In web/src/Viewer.tsx onKey drop the inert condition, skip Ctrl/Cmd+Tab, add '.overlay .zoom-scroll' to the trap selector and fix the comment; in web/src/ZoomView.tsx give the .zoom-scroll div tabIndex={0}; in web/src/index.css draw .zoom-scroll's focus-visible outline inside. One commit on branch fix/issue-27 in /mnt/c/dev/2026_databook-wt/gh-27.",
+ "acceptance_criteria": [
+  "1440x900 #/p/20, 크게 보기 opened with the button: Tab x12 and Shift+Tab x12 (real key presses) -> after every press document.activeElement is inside .overlay and document.hasFocus() is true; order 축소, 원래 크기(100%), 확대, 닫기, scroll area and the reverse. Red on the unchanged build (reaches BODY).",
+  "목차: Tab x17 and Shift+Tab x17 -> always inside .overlay; 제13장 -> 표지 and 표지 -> 제13장. Red on the unchanged build.",
+  "Same two results after running `delete HTMLElement.prototype.inert` in the page.",
+  "Focus return: (1) open by button, Esc -> the 크게 button; (2) TOC button focused, double-click a page, Tab a few times, Esc -> TOC button; (3) page-number input focused, double-click a page, click ✕ 닫기 -> the input; (4) TOC closed with Esc -> TOC button; (5) TOC link chosen with Tab + Enter -> hash page changes, TOC closes, focus on the TOC button.",
+  "With focus on the scroll area, + = - 0 give 125% -> 156% -> 125% -> 100% and PageDown scrolls; with focus on a button the zoom keys still work; mouse drag pans and double-click zooms with no visible focus ring.",
+  "A screenshot with the scroll area focused by Tab shows a visible focus indicator (save it under the scratch dir).",
+  "With an overlay open, a cancelable keydown {key:'Tab', ctrlKey:true} is not defaultPrevented and focus does not move.",
+  "After closing, ArrowLeft/ArrowRight turn pages and Tab on the book page is native (not trapped).",
+  "`cd web && npm test && npm run build` and `cd web && npm run lint` pass."
+ ],
+ "input_refs": [
+  "AGENT BRIEF (the spec; read first): /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-impl-r1/brief.md (also posted on gh issue 27)",
+  "gh issue view 27 --repo DomineYH/2026_databook --comments (issue + triage comment with owner decisions; the owner accepted every recommended default)",
+  "triage evidence (claims, not proof): /mnt/c/dev/2026_databook/.routing/evidence/ord-gh27-triage-r1.json (recommended_fix, risks, test_plan)",
+  "web/src/Viewer.tsx (onKey Tab branch, TOC overlay, inert on header/main/nav, openZoom/zoomReturn and focus effects - do not edit those), web/src/ZoomView.tsx (.zoom-scroll div), web/src/index.css (focus rules), web/src/book.ts nextTrapIndex and book.test.ts"
+ ],
+ "workspace": "/mnt/c/dev/2026_databook-wt/gh-27",
+ "input_version": "4116ea0",
+ "read_scope": [
+  "repository:read"
+ ],
+ "write_scope": [
+  "web/src/Viewer.tsx (only the onKey Tab branch and its comment)",
+  "web/src/ZoomView.tsx (only the .zoom-scroll tabIndex)",
+  "web/src/index.css (one .zoom-scroll:focus-visible rule)",
+  "/mnt/c/dev/2026_databook-wt/gh-27/.routing/tasks/ord-gh27-impl-r1.report.json",
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-impl-r1/ (build output, scripts, screenshots)"
+ ],
+ "allowed_actions": [
+  "read/search files",
+  "edit the files in write_scope",
+  "cd web && npm ci (only if web/node_modules is missing in the worktree)",
+  "cd web && npm test / npm run build / npm run lint",
+  "npx vite build --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-impl-r1/dist-base (baseline from the unchanged code, before editing) and --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-impl-r1/dist (after); npx vite preview --strictPort on ports 4338 and 4339 ONLY",
+  "drive Chromium with a Node script using playwright-core (do NOT use the Playwright MCP browser tools: another worker runs in parallel and the shared MCP profile is locked): const { chromium } = require('/home/dominelinux/.npm/_npx/e41f203b7505f1fb/node_modules/playwright-core'); chromium.launch({ headless: true }); CDP via page.context().newCDPSession(page). Put scripts under /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-impl-r1/.",
+  "git add / git commit on branch fix/issue-27 in the worktree"
+ ],
+ "testing_mode": "test_first (host-accepted; manual determination authorized by the user 2026-11-20 when approving the recommended plan; Jev test_first confidence 0.49 < 0.7, CLS-4): red = scripted Tab/Shift+Tab focus sequences leaving the overlay on the unchanged build; nextTrapIndex unit tests already exist and stay unchanged",
+ "constraints_and_local_discretion": [
+  "You are a WORKER executing this order. The repository CLAUDE.md describes the host/coordinator; its 'never write product code' and 'use herdr workers' rules apply to the host, not to you. Do not launch agents, subagents, herdr panes or workers.",
+  "Work only in /mnt/c/dev/2026_databook-wt/gh-27. Never edit the main checkout /mnt/c/dev/2026_databook or the other worktree.",
+  "If you run tsc/npm run build from a copy, never let it write through symlinks into another checkout's node_modules.",
+  "test_first: (1) Before editing, build the unchanged code and record the Tab/Shift+Tab sequences for both overlays (red). (2) Implement. (3) Run every acceptance criterion against the new build.",
+  "Keep inert={overlayOpen} on header/main/nav. Do NOT edit openZoom, zoomReturn, the focus effects, the Escape line, nextTrapIndex, ZoomView's key/gesture handlers. Do not exclude Alt from the trap (Safari Option+Tab). No new dependency, file, component or unit test.",
+  "Local discretion: exact code shape within the brief.",
+  "Commit message: subject in plain English describing the user-visible fix, short body with the cause and the fix, a 'Closes #27' line, and end with this line exactly:\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nDo not push, open PRs, comment on issues, or change labels.",
+  "Comments: one short line only where the code cannot show why.",
+  "Stop the preview servers and close every browser when done."
+ ],
+ "verification_plan_ref": "/mnt/c/dev/2026_databook/.routing/tasks/gh-27.json#/verification_plan",
+ "verification": [
+  "red: the issue's failing checks on unchanged code",
+  "green: every acceptance criterion in the browser",
+  "repo-test: cd web && npm test && npm run build",
+  "repo-lint: cd web && npm run lint"
+ ],
+ "stop_conditions": [
+  "worktree HEAD is not 4116ea0 at start -> BLOCKED",
+  "Tab already stays inside both overlays on unchanged code -> NEEDS_DECISION",
+  "the fix needs changes outside write_scope -> NEEDS_DECISION",
+  "npm ci / build fails for environment reasons -> BLOCKED with the error"
+ ],
+ "deliverable": "One commit on fix/issue-27, plus the report file /mnt/c/dev/2026_databook-wt/gh-27/.routing/tasks/ord-gh27-impl-r1.report.json (JSON: status RESULT_SUBMITTED|NEEDS_DECISION|BLOCKED, order_id, commits [sha+subject], files_changed with line counts, verification [check_id, command_or_steps, result, notes] including the red runs and per-criterion browser observations with measured values, not_run_with_reasons, open_issues, question). Do not commit the report. Then print as your final message exactly one line: REPORT <status> .routing/tasks/ord-gh27-impl-r1.report.json",
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "pane_id": "w6:pQ"
+}

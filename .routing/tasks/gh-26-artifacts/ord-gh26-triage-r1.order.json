@@ -1,0 +1,71 @@
+{
+ "task_id": "gh-26",
+ "order_id": "ord-gh26-triage-r1",
+ "order_revision": 1,
+ "role_id": "inspector",
+ "purpose": "repository_evidence",
+ "at_stage": "intake",
+ "run_when": "now",
+ "workspace": "/mnt/c/dev/2026_databook",
+ "input_version": "4116ea0",
+ "read_scope": [
+  "repository:read-only"
+ ],
+ "stop_conditions": [
+  "HEAD is not 4116ea0 (stale input) -> report BLOCKED",
+  "you would need to write anything outside the allowed paths -> report NEEDS_DECISION"
+ ],
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "setting_overrides": {
+  "harness": "claude",
+  "model": "claude-fable-5-2",
+  "effort": "high",
+  "source": "user prompt (MODEL-1 prompt override)"
+ },
+ "objective": "Triage GitHub issue #26 (DomineYH/2026_databook), a bug in the 크게 보기 zoom overlay added by #23/PR #24: when the viewport resizes (phone rotation, window resize) while a two-finger pinch or a mouse drag is held, the gesture continues from its pre-resize start values. Check the issue's claims and reproduction, find the root cause, recommend the smallest fix, choose the triage label, and if agent-ready write an agent brief.",
+ "evidence_gap": "repo: does the reviewer's reproduction hold at HEAD, which start values go stale (pinch {distance, zoom}; drag start scroll/pointer), and what is the smallest change (rebase vs cancel the active gesture when the ResizeObserver re-clamps)? Does the ResizeObserver also fire for non-resize reasons (e.g. scrollbar appearing when zoom changes) such that a fix would interrupt a normal pinch/drag?",
+ "acceptance_criteria": [
+  "Each claim in the issue (both reproductions, the stated cause) marked confirmed|refuted|unverified with file/function evidence and, where you ran a browser, exact steps and observed values",
+  "Root cause in web/src/ZoomView.tsx naming the stale state for pinch and for drag",
+  "A recommended fix: rebase or cancel, where, roughly how many lines, and why it is the smallest correct one; include whether the observer can fire mid-gesture without a real resize (scrollbar toggling) and how the fix behaves then",
+  "Risks: #23 behaviours (Ctrl+wheel anchor, pinch anchor, drag pan, double-click 1x/2x, buttons/keys, max-zoom clamp after resize), page-flip book view untouched",
+  "A test plan: which parts are unit-testable (web/src/zoom.ts style pure helpers) vs Chromium scripted checks vs real device",
+  "Triage label from: ready-for-agent | ready-for-human | needs-info | wontfix, with a one-paragraph reason (note the severity: reviewer rated it nit). If owner decisions remain, list them with a recommended default",
+  "If ready-for-agent: an agent brief (Korean) with summary, current vs desired behaviour, where to change, acceptance criteria, out of scope"
+ ],
+ "input_refs": [
+  "gh issue view 26 --repo DomineYH/2026_databook",
+  "web/src/ZoomView.tsx (zoomTo, zoomAtCenter, pinch handling in onTouch, mouse drag handlers, ResizeObserver)",
+  "web/src/zoom.ts and web/src/zoom.test.ts",
+  "web/src/index.css (.zoom, .zoom-scroll, .zoom img)",
+  ".routing/tasks/gh-23-artifacts/ord-gh23-review-r2.review.md (the findings this issue came from), ord-gh23-repair-r1.report.json",
+  "gh pr view 24 (context)",
+  "docs/agents/triage-labels.md"
+ ],
+ "write_scope": [
+  ".routing/evidence/ord-gh26-triage-r1.json",
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-triage-r1/ (build output, screenshots, scripts)"
+ ],
+ "allowed_actions": [
+  "read/search files",
+  "git show/diff/log (read-only)",
+  "gh issue view / gh pr view (read-only)",
+  "build into a temp dir: cd web && npx vite build --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-triage-r1/dist --emptyOutDir",
+  "serve it: cd web && npx vite preview --port 4326 --strictPort --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-triage-r1/dist",
+  "drive Chromium with the Playwright MCP tools against that server (CDP touch/device emulation if useful)"
+ ],
+ "constraints_and_local_discretion": [
+  "Read-only on the repository: do not edit, stage, commit, push, install packages, label, or comment on GitHub. The host applies labels and comments.",
+  "You may write only .routing/evidence/ord-gh26-triage-r1.json and files under /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-triage-r1/. Never build into web/dist or edit anything under web/.",
+  "The repository CLAUDE.md/AGENTS.md describe the host/coordinator, not you: do not start herdr panes, sub-agents or routing calls.",
+  "Desktop Chromium cannot prove iOS Safari / Android behaviour; say what needs a real device instead of guessing. Mark browser-support facts as unverified unless you checked them.",
+  "Prefer the smallest fix that meets the issue; no new dependency.",
+  "Use port 4326 only. Stop the preview server and close the browser when done.",
+  "Keep the brief free of line numbers that will rot; name functions/files instead.",
+  "Write the agent brief in Korean, plain language."
+ ],
+ "deliverable": "Write .routing/evidence/ord-gh26-triage-r1.json as JSON: {order_id, input_version, method, issue_claim_checks:[{claim, verdict: confirmed|refuted|unverified, evidence, browser_observation}], root_cause, recommended_fix:{where, how, size_estimate, why_smallest}, alternatives:[{option, cost}], risks:[...], test_plan:[...], label, label_reason, owner_decisions:[{question, recommended_default}], agent_brief (markdown string or null), open_questions:[...]}. Then print as your final message exactly one line: REPORT RESULT_SUBMITTED .routing/evidence/ord-gh26-triage-r1.json (or REPORT BLOCKED <reason> / REPORT NEEDS_DECISION <question>).",
+ "pane_id": "w6:pM"
+}

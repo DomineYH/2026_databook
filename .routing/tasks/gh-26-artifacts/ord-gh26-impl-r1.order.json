@@ -1,0 +1,76 @@
+{
+ "task_id": "gh-26",
+ "order_id": "ord-gh26-impl-r1",
+ "order_revision": 1,
+ "role_id": "implementer",
+ "purpose": "implementation",
+ "at_stage": "implementation",
+ "run_when": "now",
+ "objective": "Implement GitHub issue #26 per the agent brief: in web/src/ZoomView.tsx, a held two-finger pinch or mouse drag continues correctly from the corrected zoom/scroll after a viewport resize (rebase, not cancel). Pinch: rebase pinch.zoom in the ResizeObserver callback. Drag: move from the live scroll position each pointermove, carrying the remainder an edge refused. One commit on branch fix/issue-26 in /mnt/c/dev/2026_databook-wt/gh-26.",
+ "acceptance_criteria": [
+  "Repro 1 (390x844, #/p/20, open 크게 보기, '+' x15 -> 3200px/821%; touchStart two points 100px apart; setViewportSize 844x390 -> 3200px/379%): a held touchMove to 60px apart gives image width 1920px (227%). Red on the unchanged build (stays 3200px).",
+  "Repro 2 (390x844 max zoom; mouse.down at (200,300); setViewportSize 844x390 -> scroll 423/841): mouse.move(201,301) gives scroll 422/840. Red on the unchanged build (1405/1985).",
+  "1440x900 at 2x, mouse held and dragging, Ctrl+wheel zoom out while held: the next 1px mouse move changes scroll by 1px only.",
+  "Without a resize, a held pinch is not interrupted: launch Chromium WITHOUT --hide-scrollbars (ignoreDefaultArgs: ['--hide-scrollbars']) at 1440x900, pinch from 100% through gaps 100,110,120,130 -> 110%, 120%, 130%.",
+  "#23 behaviour unchanged (compare with the baseline build): Ctrl+wheel and double-click keep the point under the pointer; drag follows the pointer and edge overshoot is still owed on the way back; +, -, 0 keys and buttons; 390px max -> 1440x900 gives 3200px/222%; visualViewport.scale 1; hash stays #/p/20.",
+  "Sub-pixel drag does not drift: 300 moves of 0.3px/0.7px from scroll 700/700 end at the expected position and return to 700/700.",
+  "Book view unchanged: 390x844 fast left swipe turns, short corner drag stays, prev/next buttons and arrow keys turn.",
+  "`cd web && npm test && npm run build` and `cd web && npm run lint` pass."
+ ],
+ "input_refs": [
+  "AGENT BRIEF (the spec; read first): /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-impl-r1/brief.md (also posted on gh issue 26)",
+  "gh issue view 26 --repo DomineYH/2026_databook --comments (issue + triage comment with owner decisions; the owner accepted every recommended default)",
+  "triage evidence (claims, not proof): /mnt/c/dev/2026_databook/.routing/evidence/ord-gh26-triage-r1.json (recommended_fix, risks, test_plan)",
+  "web/src/ZoomView.tsx (ResizeObserver callback, onTouch/pinch, drag ref, onPointerDown/onPointerMove)",
+  "the triage's measured candidate patch (reference, do not apply blindly): /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-triage-r1/candidate-fix-P.diff; triage scripts /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-triage-r1/*.cjs (lib, pinch, drag, extra, reg, drift) can be reused"
+ ],
+ "workspace": "/mnt/c/dev/2026_databook-wt/gh-26",
+ "input_version": "4116ea0",
+ "read_scope": [
+  "repository:read"
+ ],
+ "write_scope": [
+  "web/src/ZoomView.tsx",
+  "/mnt/c/dev/2026_databook-wt/gh-26/.routing/tasks/ord-gh26-impl-r1.report.json",
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-impl-r1/ (build output, scripts, screenshots)"
+ ],
+ "allowed_actions": [
+  "read/search files",
+  "edit the files in write_scope",
+  "cd web && npm ci (only if web/node_modules is missing in the worktree)",
+  "cd web && npm test / npm run build / npm run lint",
+  "npx vite build --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-impl-r1/dist-base (baseline from the unchanged code, before editing) and --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-impl-r1/dist (after); npx vite preview --strictPort on ports 4336 and 4337 ONLY",
+  "drive Chromium with a Node script using playwright-core (do NOT use the Playwright MCP browser tools: another worker runs in parallel and the shared MCP profile is locked): const { chromium } = require('/home/dominelinux/.npm/_npx/e41f203b7505f1fb/node_modules/playwright-core'); chromium.launch({ headless: true }); CDP via page.context().newCDPSession(page). Put scripts under /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-impl-r1/.",
+  "git add / git commit on branch fix/issue-26 in the worktree"
+ ],
+ "testing_mode": "test_first (host-accepted; manual determination authorized by the user 2026-11-20 when approving the recommended plan; Jev test_first confidence 0.42 < 0.7, CLS-4): red = the two scripted reproductions on the unchanged build; no new unit test (no pure seam, per brief)",
+ "constraints_and_local_discretion": [
+  "You are a WORKER executing this order. The repository CLAUDE.md describes the host/coordinator; its 'never write product code' and 'use herdr workers' rules apply to the host, not to you. Do not launch agents, subagents, herdr panes or workers.",
+  "Work only in /mnt/c/dev/2026_databook-wt/gh-26. Never edit the main checkout /mnt/c/dev/2026_databook or the other worktree.",
+  "If you run tsc/npm run build from a copy, never let it write through symlinks into another checkout's node_modules.",
+  "test_first: (1) Before editing, build the unchanged code and run repro 1 and repro 2: record the failing values. (2) Implement. (3) Run every acceptance criterion against the new build.",
+  "Change ZoomView.tsx only. Do NOT edit zoomTo, zoomAtCenter, web/src/zoom.ts, web/src/index.css, Viewer.tsx. Do not cancel gestures in the ResizeObserver callback (it also fires when a scrollbar appears). Do not replace the drag with a plain scrollLeft -= delta (integer scroll offsets would drift). No new dependency, file or unit test.",
+  "Local discretion: exact code shape within the brief.",
+  "Commit message: subject in plain English describing the user-visible fix, short body with the cause and the fix, a 'Closes #26' line, and end with this line exactly:\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nDo not push, open PRs, comment on issues, or change labels.",
+  "Comments: one short line only where the code cannot show why.",
+  "Stop the preview servers and close every browser when done."
+ ],
+ "verification_plan_ref": "/mnt/c/dev/2026_databook/.routing/tasks/gh-26.json#/verification_plan",
+ "verification": [
+  "red: the issue's failing checks on unchanged code",
+  "green: every acceptance criterion in the browser",
+  "repo-test: cd web && npm test && npm run build",
+  "repo-lint: cd web && npm run lint"
+ ],
+ "stop_conditions": [
+  "worktree HEAD is not 4116ea0 at start -> BLOCKED",
+  "repro 1 or repro 2 already passes on unchanged code -> NEEDS_DECISION",
+  "the fix needs changes outside write_scope -> NEEDS_DECISION",
+  "npm ci / build fails for environment reasons -> BLOCKED with the error"
+ ],
+ "deliverable": "One commit on fix/issue-26, plus the report file /mnt/c/dev/2026_databook-wt/gh-26/.routing/tasks/ord-gh26-impl-r1.report.json (JSON: status RESULT_SUBMITTED|NEEDS_DECISION|BLOCKED, order_id, commits [sha+subject], files_changed with line counts, verification [check_id, command_or_steps, result, notes] including the red runs and per-criterion browser observations with measured values, not_run_with_reasons, open_issues, question). Do not commit the report. Then print as your final message exactly one line: REPORT <status> .routing/tasks/ord-gh26-impl-r1.report.json",
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "pane_id": "w6:pP"
+}

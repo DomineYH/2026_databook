@@ -1,0 +1,71 @@
+{
+ "task_id": "gh-27",
+ "order_id": "ord-gh27-triage-r1",
+ "order_revision": 1,
+ "role_id": "inspector",
+ "purpose": "repository_evidence",
+ "at_stage": "intake",
+ "run_when": "now",
+ "workspace": "/mnt/c/dev/2026_databook",
+ "input_version": "4116ea0",
+ "read_scope": [
+  "repository:read-only"
+ ],
+ "stop_conditions": [
+  "HEAD is not 4116ea0 (stale input) -> report BLOCKED",
+  "you would need to write anything outside the allowed paths -> report NEEDS_DECISION"
+ ],
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "setting_overrides": {
+  "harness": "claude",
+  "model": "claude-fable-5-2",
+  "effort": "high",
+  "source": "user prompt (MODEL-1 prompt override)"
+ },
+ "objective": "Triage GitHub issue #27 (DomineYH/2026_databook), an accessibility bug: with 크게 보기 (zoom overlay) open, repeated Tab moves focus out of the overlay to BODY/browser UI before wrapping, on browsers that support inert. The issue suspects the 목차 (TOC) overlay has the same problem. Check the claims, find the root cause, recommend the smallest fix, choose the triage label, and if agent-ready write an agent brief.",
+ "evidence_gap": "repo: where Tab escapes in the zoom overlay and in the TOC overlay at HEAD (both Tab and Shift+Tab), why the inert path has no wraparound, whether the zoom overlay's focusable scroll area (.zoom-scroll) matters, and what the smallest correct trap is that keeps the existing non-inert fallback (Safari's default Tab skips links) and Esc focus return (#10). external: Safari 'Tab skips links' default and inert support (unverified unless checked).",
+ "acceptance_criteria": [
+  "Each claim in the issue marked confirmed|refuted|unverified with file/function evidence and, for zoom and TOC overlays, exact Chromium steps and the focus sequence observed for Tab and Shift+Tab",
+  "Root cause in web/src/Viewer.tsx onKey / overlay markup (and ZoomView.tsx if relevant)",
+  "A recommended fix: where, roughly how many lines, and why smallest; say whether simply trapping Tab regardless of inert support is correct, which elements belong in the cycle (links, buttons, .zoom-scroll?), and how it keeps Esc focus return",
+  "Risks: #10 focus return paths (open button, TOC button after page double-click), #23 zoom keys (+ = - 0) and controls, TOC links that change the hash, Safari behaviour",
+  "A test plan: Chromium scripted checks and what needs a real Safari/iOS check",
+  "Triage label from: ready-for-agent | ready-for-human | needs-info | wontfix, with a one-paragraph reason. If owner decisions remain, list them with a recommended default",
+  "If ready-for-agent: an agent brief (Korean) with summary, current vs desired behaviour, where to change, acceptance criteria, out of scope"
+ ],
+ "input_refs": [
+  "gh issue view 27 --repo DomineYH/2026_databook",
+  "web/src/Viewer.tsx (onKey Tab handling, inert on bars/stage, TOC overlay, zoom open/return focus effects)",
+  "web/src/ZoomView.tsx (overlay markup, autoFocus close button, .zoom-scroll)",
+  "web/src/index.css (.overlay)",
+  ".routing/tasks/gh-23-artifacts/ord-gh23-review-r1.review.md and -r2.review.md (where the finding came from)",
+  "gh pr view 20 (#10 focus work, context)",
+  "docs/agents/triage-labels.md"
+ ],
+ "write_scope": [
+  ".routing/evidence/ord-gh27-triage-r1.json",
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-triage-r1/ (build output, screenshots, scripts)"
+ ],
+ "allowed_actions": [
+  "read/search files",
+  "git show/diff/log (read-only)",
+  "gh issue view / gh pr view (read-only)",
+  "build into a temp dir: cd web && npx vite build --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-triage-r1/dist --emptyOutDir",
+  "serve it: cd web && npx vite preview --port 4327 --strictPort --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-triage-r1/dist",
+  "drive Chromium with the Playwright MCP tools against that server (CDP touch/device emulation if useful)"
+ ],
+ "constraints_and_local_discretion": [
+  "Read-only on the repository: do not edit, stage, commit, push, install packages, label, or comment on GitHub. The host applies labels and comments.",
+  "You may write only .routing/evidence/ord-gh27-triage-r1.json and files under /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-triage-r1/. Never build into web/dist or edit anything under web/.",
+  "The repository CLAUDE.md/AGENTS.md describe the host/coordinator, not you: do not start herdr panes, sub-agents or routing calls.",
+  "Desktop Chromium cannot prove iOS Safari / Android behaviour; say what needs a real device instead of guessing. Mark browser-support facts as unverified unless you checked them.",
+  "Prefer the smallest fix that meets the issue; no new dependency.",
+  "Use port 4327 only. Stop the preview server and close the browser when done.",
+  "Keep the brief free of line numbers that will rot; name functions/files instead.",
+  "Write the agent brief in Korean, plain language."
+ ],
+ "deliverable": "Write .routing/evidence/ord-gh27-triage-r1.json as JSON: {order_id, input_version, method, issue_claim_checks:[{claim, verdict: confirmed|refuted|unverified, evidence, browser_observation}], root_cause, recommended_fix:{where, how, size_estimate, why_smallest}, alternatives:[{option, cost}], risks:[...], test_plan:[...], label, label_reason, owner_decisions:[{question, recommended_default}], agent_brief (markdown string or null), open_questions:[...]}. Then print as your final message exactly one line: REPORT RESULT_SUBMITTED .routing/evidence/ord-gh27-triage-r1.json (or REPORT BLOCKED <reason> / REPORT NEEDS_DECISION <question>).",
+ "pane_id": "w6:pN"
+}

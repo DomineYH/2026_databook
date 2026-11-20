@@ -1,0 +1,71 @@
+{
+ "task_id": "gh-26",
+ "order_id": "ord-gh26-repair-r1",
+ "order_revision": 1,
+ "role_id": "implementer",
+ "purpose": "repair",
+ "at_stage": "repair",
+ "run_when": "now",
+ "objective": "Repair PR #28 (branch fix/issue-26, HEAD 43155a5) after independent review r2 FAIL: a held pinch jumps on its first move after a resize clamps a zoom that was set by another control (key/button/wheel) during the pinch, because the ResizeObserver rebases with pinch.zoom *= zoom.current / was, which assumes the applied zoom came from the pinch curve. Make one additional commit on fix/issue-26.",
+ "acceptance_criteria": [
+  "NEW (review finding): 390x844 #/p/20 크게 보기 at 100%; hold two fingers and spread 100px -> 200px (200%); keep them down, press + (250%); resize to 1600x900 so the observer clamps to 200% (3200px); move the held fingers to 190px apart -> image 3040px (190%). Red on 43155a5 (2432px / 152%).",
+  "Repro 1 (390x844, #/p/20, open 크게 보기, '+' x15 -> 3200px/821%; touchStart two points 100px apart; setViewportSize 844x390 -> 3200px/379%): a held touchMove to 60px apart gives image width 1920px (227%). Red on the unchanged build (stays 3200px).",
+  "Repro 2 (390x844 max zoom; mouse.down at (200,300); setViewportSize 844x390 -> scroll 423/841): mouse.move(201,301) gives scroll 422/840. Red on the unchanged build (1405/1985).",
+  "1440x900 at 2x, mouse held and dragging, Ctrl+wheel zoom out while held: the next 1px mouse move changes scroll by 1px only.",
+  "Without a resize, a held pinch is not interrupted: launch Chromium WITHOUT --hide-scrollbars (ignoreDefaultArgs: ['--hide-scrollbars']) at 1440x900, pinch from 100% through gaps 100,110,120,130 -> 110%, 120%, 130%.",
+  "#23 behaviour unchanged (compare with the baseline build): Ctrl+wheel and double-click keep the point under the pointer; drag follows the pointer and edge overshoot is still owed on the way back; +, -, 0 keys and buttons; 390px max -> 1440x900 gives 3200px/222%; visualViewport.scale 1; hash stays #/p/20.",
+  "Sub-pixel drag does not drift: 300 moves of 0.3px/0.7px from scroll 700/700 end at the expected position and return to 700/700.",
+  "Book view unchanged: 390x844 fast left swipe turns, short corner drag stays, prev/next buttons and arrow keys turn.",
+  "`cd web && npm test && npm run build` and `cd web && npm run lint` pass."
+ ],
+ "input_refs": [
+  "REVIEW (the finding to fix): /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-review-r2/review.md",
+  "reviewer's probe that reproduces it: /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-review-r2/edge-cases.cjs (case keyBeforeClamp; outputs fix.edge-cases.json / base.edge-cases.json in that dir) - read it, copy what you need into your own scratch dir",
+  "your earlier order and report: /mnt/c/dev/2026_databook/.routing/tasks/gh-26-artifacts/ord-gh26-impl-r1.order.json, /mnt/c/dev/2026_databook-wt/gh-26/.routing/tasks/ord-gh26-impl-r1.report.json; your earlier scripts /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-impl-r1/",
+  "agent brief: /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-impl-r1/brief.md",
+  "web/src/ZoomView.tsx (onTouch / pinch state, ResizeObserver callback)"
+ ],
+ "workspace": "/mnt/c/dev/2026_databook-wt/gh-26",
+ "input_version": "43155a5",
+ "read_scope": [
+  "repository:read"
+ ],
+ "write_scope": [
+  "web/src/ZoomView.tsx",
+  "/mnt/c/dev/2026_databook-wt/gh-26/.routing/tasks/ord-gh26-repair-r1.report.json",
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-repair-r1/ (build output, scripts, screenshots)"
+ ],
+ "allowed_actions": [
+  "read/search files",
+  "edit web/src/ZoomView.tsx",
+  "cd web && npm test / npm run build / npm run lint",
+  "npx vite build --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-repair-r1/dist (and the current HEAD before editing into /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-repair-r1/dist-before); npx vite preview --strictPort on ports 4336 and 4337 ONLY",
+  "drive Chromium with a Node script using playwright-core (not the Playwright MCP browser): const { chromium } = require('/home/dominelinux/.npm/_npx/e41f203b7505f1fb/node_modules/playwright-core'); scripts under /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-repair-r1/",
+  "git add / git commit on branch fix/issue-26 in the worktree"
+ ],
+ "testing_mode": "test_first: reproduce the new criterion red on 43155a5 before editing, then green",
+ "constraints_and_local_discretion": [
+  "You are a WORKER executing this order. The repository CLAUDE.md describes the host/coordinator; its rules about not writing code and herdr apply to the host, not to you. Do not launch agents, subagents, herdr panes or workers.",
+  "Work only in /mnt/c/dev/2026_databook-wt/gh-26. Never edit the main checkout.",
+  "Recommended fix (host): keep the latest finger span in the pinch state (update it on every two-finger touchmove). In the ResizeObserver callback, only when the zoom actually changed (zoom.current !== was) and a pinch is held, rebase the pinch to the corrected zoom and the latest span: pinch = { distance: latestSpan, zoom: zoom.current }. When the zoom did not change, leave the pinch untouched (scrollbar-triggered callbacks must not affect gestures). This makes the next move scale from what is on screen, whatever control set it. Accepted side effect: if the fingers were spread past the maximum when a resize clamps, the pinch-in dead zone is dropped (the page shrinks at once) - mention it in the report. You may choose an equivalent smaller fix if it meets every criterion; explain why.",
+  "Do not change the drag code (it passed review), zoomTo, zoomAtCenter, zoom.ts, index.css or Viewer.tsx. The pre-existing jump when a key zoom happens during a held pinch WITHOUT any resize (150%->122% on both builds) is out of scope; do not fix it, but report whether your change affects it.",
+  "Commit message: plain-English subject for the fix, short body naming the review finding, end with this line exactly:\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nDo not push, open PRs, comment on GitHub, or change labels.",
+  "Stop preview servers and close every browser when done."
+ ],
+ "verification": [
+  "red: the new criterion on 43155a5",
+  "green: every acceptance criterion (re-run your impl-r1 probes)",
+  "repo-test",
+  "repo-lint"
+ ],
+ "stop_conditions": [
+  "worktree HEAD is not 43155a5 at start -> BLOCKED",
+  "the new criterion passes on 43155a5 -> NEEDS_DECISION",
+  "the fix needs changes outside write_scope -> NEEDS_DECISION"
+ ],
+ "deliverable": "One new commit on fix/issue-26 plus /mnt/c/dev/2026_databook-wt/gh-26/.routing/tasks/ord-gh26-repair-r1.report.json (JSON: status, order_id, commits, files_changed, verification with measured values incl. the red run, not_run_with_reasons, open_issues). Do not commit the report. Final message exactly one line: REPORT <status> .routing/tasks/ord-gh26-repair-r1.report.json",
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "pane_id": "w6:pW"
+}
