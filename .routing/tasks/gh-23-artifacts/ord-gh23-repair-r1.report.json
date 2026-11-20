@@ -1,0 +1,67 @@
+{
+ "status": "RESULT_SUBMITTED",
+ "order_id": "ord-gh23-repair-r1",
+ "commits": [
+  {
+   "sha": "d45041b",
+   "subject": "Keep the full-size view within its maximum zoom after a resize"
+  }
+ ],
+ "files_changed": [
+  {
+   "path": "web/src/ZoomView.tsx",
+   "added": 4,
+   "removed": 0
+  }
+ ],
+ "verification": [
+  {
+   "check_id": "red-resize",
+   "command_or_steps": "build of 539b3ab (/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-repair-r1/dist-red) on :4331, node /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-repair-r1/resize.cjs 4331: 390x844 overlay, '+' x15 to max, then setViewportSize 1440x900 / 844x390",
+   "result": "fail_as_expected",
+   "notes": "390 max 3200px 821%; -> 1440x900: 11815px, label 821%; -> 844x390: 6925px, label 821%"
+  },
+  {
+   "check_id": "green-resize",
+   "command_or_steps": "new build (/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-repair-r1/dist) on :4332, node /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-repair-r1/resize.cjs 4332",
+   "result": "pass",
+   "notes": "-> 1440x900: 3200px, label 222%; -> 844x390: 3200px, label 379%; no input needed. Shrink check: 1440 at 195% (2813px) -> 390 wide: 762px, label stays 195%; back to 1440: 2813px, 195% (factor kept, never below 1x)"
+  },
+  {
+   "check_id": "regression-desktop",
+   "command_or_steps": "node /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-impl-r1/desk.cjs, /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-impl-r1/deskreg.cjs 4332, /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-impl-r1/tab.cjs 4332",
+   "result": "pass",
+   "notes": "identical to ord-gh23-impl-r1 results: C1 1440/4145, C2 point drift <1px and 3200 max / 1440 min, C3 dblclick 2x/1x + drag, C5 keys/buttons/Tab/Esc focus return, C6 hash #/p/20, C7 desktop corner hover stays / click 20->22"
+  },
+  {
+   "check_id": "regression-mobile",
+   "command_or_steps": "node /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-impl-r1/mobile.cjs 4332 zoom",
+   "result": "pass",
+   "notes": "spread 390->1482, vv.scale 1, bar rect fixed, one-finger scroll, pinch-in to 390, hash unchanged; C7 swipe/corner drag/buttons/arrows same as baseline"
+  },
+  {
+   "check_id": "console",
+   "command_or_steps": "console errors in all scripts",
+   "result": "pass",
+   "notes": "only /_vercel/insights/script.js 404"
+  },
+  {
+   "check_id": "repo-test",
+   "command_or_steps": "cd web && npm test && npm run build",
+   "result": "pass",
+   "notes": "31 tests; build ok"
+  },
+  {
+   "check_id": "repo-lint",
+   "command_or_steps": "cd web && npm run lint",
+   "result": "pass",
+   "notes": "exit 0"
+  }
+ ],
+ "not_run_with_reasons": [
+  "No unit test added: no new pure logic (reuses clampZoom via zoomAtCenter)",
+  "Real-device rotation not checked; out of scope (human check on PR preview)"
+ ],
+ "open_issues": [],
+ "question": null
+}

@@ -1,0 +1,127 @@
+{
+ "status": "RESULT_SUBMITTED",
+ "order_id": "ord-gh23-impl-r1",
+ "commits": [
+  {
+   "sha": "539b3ab",
+   "subject": "Zoom pages in and out inside the full-size view"
+  }
+ ],
+ "files_changed": [
+  {
+   "path": "web/src/ZoomView.tsx",
+   "added": 107,
+   "removed": 0
+  },
+  {
+   "path": "web/src/zoom.ts",
+   "added": 23,
+   "removed": 0
+  },
+  {
+   "path": "web/src/zoom.test.ts",
+   "added": 55,
+   "removed": 0
+  },
+  {
+   "path": "web/src/Viewer.tsx",
+   "added": 2,
+   "removed": 6
+  },
+  {
+   "path": "web/src/index.css",
+   "added": 8,
+   "removed": 5
+  }
+ ],
+ "verification": [
+  {
+   "check_id": "red-criterion-2",
+   "command_or_steps": "baseline build /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-impl-r1/dist-base on :4331, node /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-impl-r1/red.cjs: 1440x900 #/p/20, open overlay, wheel 200, Ctrl+wheel -200 x3",
+   "result": "fail_as_expected",
+   "notes": "image width 1440 before and after Ctrl+wheel; scrollTop 200 -> 0 (Ctrl+wheel only scrolled); visualViewport.scale 1"
+  },
+  {
+   "check_id": "red-zoom-test",
+   "command_or_steps": "npx vitest run src/zoom.test.ts before zoom.ts existed",
+   "result": "fail_as_expected",
+   "notes": "import of ./zoom failed, 0 tests"
+  },
+  {
+   "check_id": "green-zoom-test",
+   "command_or_steps": "npx vitest run src/zoom.test.ts",
+   "result": "pass",
+   "notes": "10 tests"
+  },
+  {
+   "check_id": "C1",
+   "command_or_steps": "node /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-impl-r1/desk.cjs (new build :4332)",
+   "result": "pass",
+   "notes": "widths [1440,1440], scrollHeight 4145 at 1x on both baseline and new; plain wheel scrollTop 0->200, width unchanged"
+  },
+  {
+   "check_id": "C2",
+   "command_or_steps": "Ctrl+wheel -100 at (700,400) x3, then x30, then +100 x40",
+   "result": "pass",
+   "notes": "widths 1759/2148/2624; tracked image point stayed at (700.0..700.5, 400.3..400.5), <1px drift; max width 3200 (222%); back to 1440 (100%); visualViewport.scale 1 throughout"
+  },
+  {
+   "check_id": "C3",
+   "command_or_steps": "dblclick (500,500) at 1x, mouse drag (800,600)->(700,450), dblclick",
+   "result": "pass",
+   "notes": "1x->2x (2880px), point stayed at (500,500); drag scrollLeft 500->600, scrollTop 846->996; dblclick back to 1440"
+  },
+  {
+   "check_id": "C4",
+   "command_or_steps": "node /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-impl-r1/mobile.cjs 4332 zoom: 390x844 isMobile hasTouch + CDP Emulation.setTouchEmulationEnabled, Input.dispatchTouchEvent two points",
+   "result": "pass",
+   "notes": "spread 390->1482px, vv.scale 1; one-finger drag scrollTop 684->1211 (Chrome axis-locked a mostly vertical drag, scrollLeft unchanged); pinch-in back to 390; spread over the button row also zooms the images (1755px), vv.scale 1; bar rect [147,8,235,36] unchanged in all steps"
+  },
+  {
+   "check_id": "C5",
+   "command_or_steps": "keys + = - 0, buttons 확대 확대 축소 원래크기, Tab x6, Esc; reopen; focus 목차 button then dblclick page, Esc",
+   "result": "pass",
+   "notes": "125/156/125/100%, buttons 125/156/125/100%; Tab visits 축소, 원래 크기, 확대, 닫기, the scroll area (Chrome makes scrollers focusable) and then the browser-UI exit (body) - same exit as baseline (baseline cycles 닫기 <-> body), never a book or bar element; Esc closes and focus returns to '크게 보기' button; dblclick-open returns focus to '목차 열기'; reopen starts at 100%"
+  },
+  {
+   "check_id": "C6",
+   "command_or_steps": "hash after zoom/drag/wheel/close at 1440x900 (desk.cjs) and pinch/drag/close at 390x844 (mobile.cjs)",
+   "result": "pass",
+   "notes": "#/p/20 throughout at both sizes"
+  },
+  {
+   "check_id": "C7",
+   "command_or_steps": "mobile.cjs (book part) and /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-impl-r1/deskreg.cjs on both 4331 and 4332",
+   "result": "pass",
+   "notes": "identical on baseline and new: 390x844 fast left swipe 20->21, 40px left-corner drag stays 21, next 22, prev 21, ArrowRight 22, ArrowLeft 21; 1440x900 hover right corner and away stays 20, right corner click 20->22"
+  },
+  {
+   "check_id": "C8",
+   "command_or_steps": "console errors collected in all scripts",
+   "result": "pass",
+   "notes": "only the /_vercel/insights/script.js 404. An earlier run logged Chrome 'Ignored attempt to cancel a touchstart/touchmove with cancelable=false' when a pinch began during a scroll fling; fixed by calling preventDefault only when e.cancelable (touch-action pan-x pan-y already blocks the browser pinch there)"
+  },
+  {
+   "check_id": "repo-test",
+   "command_or_steps": "cd web && npm test && npm run build",
+   "result": "pass",
+   "notes": "2 files, 31 tests; build ok"
+  },
+  {
+   "check_id": "repo-lint",
+   "command_or_steps": "cd web && npm run lint",
+   "result": "pass",
+   "notes": "exit 0, no findings"
+  }
+ ],
+ "not_run_with_reasons": [
+  "Real devices (iOS Safari gesturestart, Android Chrome) - out of scope per brief; human checks on the PR preview",
+  "Firefox deltaMode=1 wheel only covered by unit test, not in a browser",
+  "Non-inert Tab trap path (old Safari) not exercised; the overlay buttons are all <button> inside .overlay, so it finds them, but it skips the focusable scroll area"
+ ],
+ "open_issues": [
+  "Max zoom is computed from the current fit width; after a window resize while zoomed the factor is not re-clamped until the next zoom action",
+  "npm ci was run in the worktree (web/node_modules was missing)"
+ ],
+ "question": null
+}

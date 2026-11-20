@@ -1,0 +1,83 @@
+{
+ "task_id": "gh-23",
+ "order_id": "ord-gh23-impl-r1",
+ "order_revision": 1,
+ "role_id": "implementer",
+ "purpose": "implementation",
+ "at_stage": "implementation",
+ "run_when": "now",
+ "objective": "Implement GitHub issue #23 as described by the agent brief: zoom in/out inside the '크게 보기' overlay only (Ctrl/Cmd+wheel about the cursor, mouse-drag pan, double-click 1x<->2x, -/100%/+ buttons, +/-/0 keys, two-finger pinch on touch), scale from 1x (today's fit width) to 2x the 1600px source. Make one commit on branch feat/issue-23 in the worktree /mnt/c/dev/2026_databook-wt/gh-23.",
+ "acceptance_criteria": [
+  "1440x900 #/p/20, overlay open: at 1x the image widths and scrollHeight equal the unchanged build; the plain wheel scrolls vertically.",
+  "1440x900 overlay: Ctrl+wheel up over a point on a page enlarges the images and the image content under that point moves by no more than 4px; repeated zoom stops at image width 3200px; zooming out stops at the 1x width; visualViewport.scale stays 1 (no browser zoom).",
+  "1440x900 zoomed: mouse drag pans the view; double-click returns to 1x; double-click at 1x goes to 2x about the point.",
+  "390x844 with touch emulation (CDP Emulation.setTouchEmulationEnabled + Input.dispatchTouchEvent with two touch points), overlay: a two-finger spread enlarges the images and visualViewport.scale stays 1; the button row keeps its size and position; a one-finger drag scrolls.",
+  "+ (or =), -, 0 keys and the three buttons zoom in, zoom out and reset; Tab cycles only inside the overlay; Esc closes it and focus returns to where it was before opening (the '⤢ 크게' button, or the element focused before a page double-click) (#10).",
+  "After zooming, dragging and wheeling in the overlay and then closing, the page hash is unchanged (1440x900 and 390x844).",
+  "No regression at 1x book view: 390x844 fast left swipe turns to the next page, a 40px drag from the left corner and release stays, prev/next buttons and ArrowLeft/ArrowRight turn; 1440x900 right corner click turns, hovering a corner and moving away stays.",
+  "No browser console errors except the local-preview 404 for /_vercel/insights/script.js (pre-existing).",
+  "zoom.ts has vitest unit tests; `cd web && npm test && npm run build` and `cd web && npm run lint` pass."
+ ],
+ "input_refs": [
+  "AGENT BRIEF (the spec; read first): /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-impl-r1/brief.md (also posted on gh issue 23)",
+  "gh issue view 23 --repo DomineYH/2026_databook --comments (issue + triage comment with owner decisions)",
+  "triage evidence with design detail and risks (claims, not proof): /mnt/c/dev/2026_databook/.routing/evidence/ord-gh23-triage-r1.json (recommended_design, risks)",
+  "web/src/Viewer.tsx (openZoom, zoomReturn, focus-return effect, onKey Esc/Tab trap, the zoomed && overlay block), web/src/index.css (.overlay, .zoom), web/src/book.ts (pageSrc, pageAlt), web/src/book.test.ts (test style)"
+ ],
+ "workspace": "/mnt/c/dev/2026_databook-wt/gh-23",
+ "input_version": "88b4492",
+ "read_scope": [
+  "repository:read"
+ ],
+ "write_scope": [
+  "web/src/ZoomView.tsx (new)",
+  "web/src/zoom.ts (new)",
+  "web/src/zoom.test.ts (new)",
+  "web/src/Viewer.tsx (only the overlay block and its import)",
+  "web/src/index.css (the .zoom rules)",
+  "/mnt/c/dev/2026_databook-wt/gh-23/.routing/tasks/ord-gh23-impl-r1.report.json",
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-impl-r1/ (build output, scripts, screenshots)"
+ ],
+ "allowed_actions": [
+  "read/search files",
+  "edit the files in write_scope",
+  "cd web && npm ci (only if web/node_modules is missing in the worktree)",
+  "cd web && npm test / npm run build / npm run lint",
+  "npx vite build --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-impl-r1/dist-base (baseline from the unchanged code, before editing) and npx vite preview --port 4331 --strictPort (ONLY ports 4331 and 4332)",
+  "drive Chromium either with the Playwright MCP browser tools or a Node script using playwright-core: const { chromium } = require('/home/dominelinux/.npm/_npx/e41f203b7505f1fb/node_modules/playwright-core'); chromium.launch({ headless: true }); CDP via page.context().newCDPSession(page). Put scripts under /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-impl-r1/.",
+  "git add / git commit on branch feat/issue-23 in the worktree"
+ ],
+ "testing_mode": "test_first (host-accepted; manual determination authorized by the user 2026-11-20 when approving the recommended plan, which specifies zoom.ts unit tests; Jev test_first p=0.65 confidence 0.56)",
+ "constraints_and_local_discretion": [
+  "You are a WORKER executing this order. The repository CLAUDE.md describes the host/coordinator; its 'never write product code' and 'use herdr workers' rules apply to the host, not to you. Do not launch agents, subagents, herdr panes or workers.",
+  "Work only in /mnt/c/dev/2026_databook-wt/gh-23. Never edit the main checkout /mnt/c/dev/2026_databook.",
+  "test_first: (1) Before editing, build the unchanged code and show in the browser that criterion 2 fails (Ctrl+wheel in the overlay only scrolls; record image width before/after). Keep that baseline build for the 1x comparison in criterion 1. (2) Write web/src/zoom.test.ts first and run it to see it fail (red), then implement zoom.ts until green. (3) Then build the overlay and check every acceptance criterion in the browser.",
+  "Follow the brief's design: ZoomView.tsx owns the overlay markup, scale state and all wheel/touch/drag/key handling; Viewer.tsx only renders <ZoomView pages={zoomed} onClose={...}/> in place of the overlay block. Keep className 'overlay zoom', role=dialog, aria-modal, aria-label='크게 보기', the close button's autoFocus and unmount-on-close. Buttons sit inside the .overlay element in a row outside the scroll area.",
+  "Zoom by image width via a CSS variable (e.g. --zoom) and native scrolling for panning, not a CSS transform. Keep the point under the cursor/finger midpoint fixed by adjusting scrollLeft/scrollTop after the scale change.",
+  "Wheel and touch listeners must be native addEventListener with { passive: false }; preventDefault only for Ctrl/Cmd+wheel and for two-touch gestures; also preventDefault Safari's gesturestart. Scale proportionally to deltaY and handle deltaMode lines. touch-action: pan-x pan-y on the scroll area.",
+  "Do NOT touch: onInit page-flip patches, settle, dropFold, FlipBook props, openZoom, zoomReturn, the focus-return effect, onKey (Esc/Tab), page-flip in node_modules. No new dependency. No changes outside write_scope.",
+  "Comments: one short line only where the code cannot show why (e.g. why native non-passive listeners). Keep zoom.ts pure and small.",
+  "Commit message: subject in plain English describing the user-visible feature, body explains the design choices briefly, a 'Closes #23' line, and end with these two lines exactly:\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01LPmFwaNXbmSn68nUJuz8gK\nDo not push, open PRs, comment on issues, or change labels.",
+  "Stop the preview servers and close the browser when done.",
+  "Local discretion: exact code shape, button labels/aria-labels (Korean, consistent with the app), zoom step size, within the brief."
+ ],
+ "verification_plan_ref": "/mnt/c/dev/2026_databook/.routing/tasks/gh-23.json#/verification_plan",
+ "verification": [
+  "red: criterion 2 on unchanged code",
+  "red/green: zoom.test.ts",
+  "green: every acceptance criterion in the browser",
+  "repo-test: cd web && npm test && npm run build",
+  "repo-lint: cd web && npm run lint"
+ ],
+ "stop_conditions": [
+  "worktree HEAD is not 88b4492 at start -> BLOCKED",
+  "criterion 2 already passes on unchanged code -> NEEDS_DECISION",
+  "the design needs changes outside write_scope (e.g. page-flip patches or onKey) -> NEEDS_DECISION",
+  "npm ci / build fails for environment reasons -> BLOCKED with the error"
+ ],
+ "deliverable": "One commit on feat/issue-23, plus the report file /mnt/c/dev/2026_databook-wt/gh-23/.routing/tasks/ord-gh23-impl-r1.report.json (JSON: status RESULT_SUBMITTED|NEEDS_DECISION|BLOCKED, order_id, commits [sha+subject], files_changed with line counts, verification [check_id, command_or_steps, result, notes] including the red runs and per-criterion browser observations, not_run_with_reasons, open_issues, question). Do not commit the report. Then print as your final message exactly one line: REPORT <status> .routing/tasks/ord-gh23-impl-r1.report.json",
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "pane_id": "w6:pJ"
+}

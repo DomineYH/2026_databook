@@ -1,0 +1,64 @@
+{
+ "task_id": "gh-23",
+ "order_id": "ord-gh23-review-r1",
+ "order_revision": 1,
+ "role_id": "task-verifier",
+ "purpose": "independent_review",
+ "at_stage": "independent_review_and_ci",
+ "run_when": "now",
+ "objective": "Independently review PR #24 (branch feat/issue-23, commit 539b3ab, diff 88b4492..539b3ab) implementing GitHub issue #23: zoom in/out inside the '크게 보기' overlay (Ctrl/Cmd+wheel, mouse-drag pan, double-click, -/100%/+ buttons, +/-/0 keys, two-finger pinch), 1x to 3200px wide, book view unchanged.",
+ "acceptance_criteria": [
+  "1440x900 #/p/20, overlay open: at 1x the image widths and scrollHeight equal the unchanged build; the plain wheel scrolls vertically.",
+  "1440x900 overlay: Ctrl+wheel up over a point on a page enlarges the images and the image content under that point moves by no more than 4px; repeated zoom stops at image width 3200px; zooming out stops at the 1x width; visualViewport.scale stays 1 (no browser zoom).",
+  "1440x900 zoomed: mouse drag pans the view; double-click returns to 1x; double-click at 1x goes to 2x about the point.",
+  "390x844 with touch emulation (CDP Emulation.setTouchEmulationEnabled + Input.dispatchTouchEvent with two touch points), overlay: a two-finger spread enlarges the images and visualViewport.scale stays 1; the button row keeps its size and position; a one-finger drag scrolls.",
+  "+ (or =), -, 0 keys and the three buttons zoom in, zoom out and reset; Tab cycles only inside the overlay; Esc closes it and focus returns to where it was before opening (the '⤢ 크게' button, or the element focused before a page double-click) (#10).",
+  "After zooming, dragging and wheeling in the overlay and then closing, the page hash is unchanged (1440x900 and 390x844).",
+  "No regression at 1x book view: 390x844 fast left swipe turns to the next page, a 40px drag from the left corner and release stays, prev/next buttons and ArrowLeft/ArrowRight turn; 1440x900 right corner click turns, hovering a corner and moving away stays.",
+  "No browser console errors except the local-preview 404 for /_vercel/insights/script.js (pre-existing).",
+  "zoom.ts has vitest unit tests; `cd web && npm test && npm run build` and `cd web && npm run lint` pass."
+ ],
+ "input_refs": [
+  "git diff 88b4492..539b3ab (web/src/ZoomView.tsx, zoom.ts, zoom.test.ts, Viewer.tsx, index.css)",
+  "gh issue view 23 --comments (issue, triage comment with owner decisions and the agent brief = the spec)",
+  "gh pr view 24 / gh pr checks 24",
+  "implementer report (claims, not proof): /mnt/c/dev/2026_databook-wt/gh-23/.routing/tasks/ord-gh23-impl-r1.report.json",
+  "implementer scripts (may be reused): /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-impl-r1/",
+  "web/src/Viewer.tsx (openZoom, zoomReturn, focus-return effect, onKey Esc/Tab trap) and web/node_modules/page-flip/src/UI/UI.ts (window-level listeners still active under the overlay)"
+ ],
+ "workspace": "/mnt/c/dev/2026_databook-wt/gh-23",
+ "input_version": "539b3ab",
+ "read_scope": [
+  "repository:read-only"
+ ],
+ "write_scope": [
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-review-r1/"
+ ],
+ "allowed_actions": [
+  "read/search files",
+  "git show/diff/log (read-only)",
+  "gh issue view / gh pr view / gh pr checks (read-only)",
+  "cd web && npm test / npm run lint",
+  "optional: npx vite build --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-review-r1/dist and npx vite preview --port 4341 --strictPort --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-review-r1/dist (port 4341 only; a baseline build of 88b4492 may be served on 4342 from a git worktree or git archive under /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-review-r1/), driven by a Node script using require('/home/dominelinux/.npm/_npx/e41f203b7505f1fb/node_modules/playwright-core') chromium.launch({headless:true}); CDP touch via page.context().newCDPSession(page). Stop servers when done."
+ ],
+ "constraints_and_local_discretion": [
+  "Read-only on the repository: do not edit, stage, commit, push, or comment on GitHub. AGENTS.md/CLAUDE.md describe the host/coordinator, not you; do not start agents or panes.",
+  "Verdict rules: PASS = no important findings and every acceptance criterion met by code inspection and/or browser evidence. FAIL = at least one important finding (a concrete defect or unmet criterion caused by this change). BLOCKED only if you cannot read the inputs. Pre-existing issues and the local-preview 404 for /_vercel/insights/script.js are pre_existing and never fail the review. Real-device iOS/Android checks are a human step and not a reason to fail.",
+  "Owner decisions (do not report as defects): zoom only inside 크게 보기; Ctrl/Cmd+wheel zooms and the plain wheel scrolls; max 2x source (3200px); no new dependency; Esc closes directly.",
+  "Questions: (1) Anchoring: does the point under the cursor/finger midpoint stay put across pages separated by gaps, at the 3200px clamp, and near the scroll edges (where scrollLeft/scrollTop cannot move further)? (2) Listeners: are wheel/touch/gesturestart/keydown added once and removed on close; can the window keydown (+/-/0) fire when it should not (e.g. while the TOC or another control has focus, or with Shift layouts where '+' needs Shift)? Does the stale-closure in the empty-deps effect (zoomTo/fitWidth captured at mount) cause a bug? (3) Touch: two-finger handling, touch-action pan-x pan-y, preventDefault only when cancelable; can a pinch leave the browser zoomed or a page turned (page-flip's window touchmove/touchend listeners under the overlay)? (4) Focus/a11y: close autoFocus, Tab trap (inert and non-inert paths), Esc and #10 focus return, the percent button's label, scroll area focusability. (5) Layout: 1x identical to before (padding-top 52px vs old sticky close), resize while zoomed (implementer notes zoom is not re-clamped), small phones 375x667. (6) Code size and clarity: anything that can be deleted or simplified without losing a criterion.",
+  "Report only actionable findings with file:line and a concrete failure scenario."
+ ],
+ "verification": [
+  "review of diff 88b4492..539b3ab",
+  "npm test / lint",
+  "browser re-check of the criteria you doubt"
+ ],
+ "stop_conditions": [
+  "worktree HEAD is not 539b3ab -> BLOCKED"
+ ],
+ "deliverable": "Write /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-review-r1/review.md: a block starting with the line REVIEW_BEGIN and ending with REVIEW_END, containing verdict PASS|FAIL|BLOCKED, reviewed_revision, findings [severity important|nit|pre_existing, file:line, summary, failure_scenario], criteria_check (each acceptance criterion -> met/unmet/unverifiable + evidence), answers to questions 1-6, checks_run with results. Then print as your final message exactly one line: REPORT RESULT_SUBMITTED /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-review-r1/review.md (or REPORT BLOCKED <reason>).",
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "pane_id": "w6:pK"
+}
