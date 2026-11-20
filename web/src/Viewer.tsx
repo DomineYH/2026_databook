@@ -209,9 +209,9 @@ export default function Viewer() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { setZoomed(null); setTocOpen(false) }
-      // Without inert the page behind stays tabbable; trap every Tab, since Safari's default Tab skips links.
-      if (e.key === 'Tab' && (zoomed || tocOpen) && !('inert' in HTMLElement.prototype)) {
-        const items = [...document.querySelectorAll<HTMLElement>('.overlay a, .overlay button')]
+      // inert only blocks the page behind, not the escape to browser chrome; Safari's default Tab also skips links.
+      if (e.key === 'Tab' && (zoomed || tocOpen) && !e.ctrlKey && !e.metaKey) {
+        const items = [...document.querySelectorAll<HTMLElement>('.overlay a, .overlay button, .overlay .zoom-scroll')]
         e.preventDefault()
         items[nextTrapIndex(items.indexOf(document.activeElement as HTMLElement), items.length, e.shiftKey)]?.focus()
         return
