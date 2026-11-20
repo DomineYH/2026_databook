@@ -65,7 +65,11 @@ export default function ZoomView({ pages, onClose }: { pages: number[]; onClose:
     el.addEventListener('gesturestart', stop) // Safari's pinch
     addEventListener('keydown', onKey)
     // A wider fit (window resize, phone rotation) lowers the maximum; re-clamp the current zoom.
-    const resize = new ResizeObserver(() => zoomAtCenter(zoom.current))
+    const resize = new ResizeObserver(() => {
+      const was = zoom.current
+      zoomAtCenter(was)
+      if (pinch) pinch.zoom *= zoom.current / was // a held pinch continues from the re-clamped zoom
+    })
     resize.observe(scroller.current!)
     return () => {
       resize.disconnect()
@@ -78,18 +82,22 @@ export default function ZoomView({ pages, onClose }: { pages: number[]; onClose:
   }, [])
 
   // Mouse drag pans; touch keeps the browser's own scrolling.
-  const drag = useRef<{ x: number; y: number; left: number; top: number } | null>(null)
+  const drag = useRef<{ x: number; y: number } | null>(null)
   const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
     if (e.pointerType !== 'mouse' || e.button !== 0) return
-    const el = e.currentTarget
-    drag.current = { x: e.clientX, y: e.clientY, left: el.scrollLeft, top: el.scrollTop }
-    el.setPointerCapture(e.pointerId)
+    drag.current = { x: e.clientX, y: e.clientY }
+    e.currentTarget.setPointerCapture(e.pointerId)
   }
   const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
     const d = drag.current
     if (!d) return
-    e.currentTarget.scrollLeft = d.left - (e.clientX - d.x)
-    e.currentTarget.scrollTop = d.top - (e.clientY - d.y)
+    const el = e.currentTarget
+    const { scrollLeft, scrollTop } = el
+    el.scrollLeft -= e.clientX - d.x
+    el.scrollTop -= e.clientY - d.y
+    // Advance by what really scrolled: the drag follows a zoom or resize, and what an edge refused stays owed.
+    d.x += scrollLeft - el.scrollLeft
+    d.y += scrollTop - el.scrollTop
   }
   const endDrag = () => { drag.current = null }
 
