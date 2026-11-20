@@ -86,13 +86,16 @@ html, body, #root { margin: 0; height: 100%; overflow: hidden; }
 .toc .current a { box-shadow: inset 3px 0 var(--accent); }
 .toc small { color: var(--muted); white-space: nowrap; }
 
-.zoom { overflow: auto; background: #000; text-align: center; }
-.zoom img { width: min(100%, 1600px); display: block; margin: 0 auto 8px; }
-.zoom .close {
-  position: sticky; top: 8px; float: right; margin: 8px;
-  height: 36px; padding: 0 14px; font: inherit; color: var(--text);
+.zoom { background: #000; touch-action: pan-x pan-y; }
+/* The bar floats outside the scroll area so panning and zooming never move it; the padding keeps 1x where it was. */
+.zoom-bar { position: absolute; top: 8px; right: 8px; z-index: 1; display: flex; gap: 6px; }
+.zoom-bar button {
+  height: 36px; min-width: 36px; padding: 0 12px; font: inherit; color: var(--text);
   background: var(--bar); border: 1px solid #3a3a3c; border-radius: 6px; cursor: pointer;
 }
+.zoom-scroll { height: 100%; overflow: auto; padding-top: 52px; cursor: grab; user-select: none; }
+.zoom-scroll:active { cursor: grabbing; }
+.zoom img { width: calc(min(100%, 1600px) * var(--zoom, 1)); display: block; margin: 0 auto 8px; }
 
 @media (max-width: 560px) {
   .top h1 { display: none; }
