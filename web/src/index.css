@@ -1,9 +1,12 @@
 :root {
-  --bg: #1c1c1e;
-  --bar: rgba(28, 28, 30, 0.92);
-  --text: #e8e6e3;
-  --muted: #9a978f;
-  --accent: #c0141c; /* 표지의 빨간색 */
+  --bg: #f4efe6;
+  --bar: rgba(233, 226, 214, 0.92);
+  --text: #2b2622;
+  --muted: #665d53;
+  --accent: #b3121a; /* 표지의 빨간색 */
+  --surface: #e9e2d6;
+  --border: #d6ccbc;
+  color-scheme: light;
   --bars: 104px;
   font: 15px/1.4 system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   color: var(--text);
@@ -32,14 +35,14 @@ html, body, #root { margin: 0; height: 100%; overflow: hidden; }
 .bottom button {
   min-width: 44px; height: 36px; padding: 0 12px;
   font: inherit; color: var(--text); background: transparent;
-  border: 1px solid #3a3a3c; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--border); border-radius: 6px; cursor: pointer;
 }
 .bottom button:hover:not(:disabled) { border-color: var(--accent); }
 .bottom button:disabled { opacity: 0.35; cursor: default; }
 .bottom form { display: flex; align-items: center; color: var(--muted); }
 .bottom input {
   width: 76px; height: 36px; text-align: center; font: inherit;
-  color: var(--text); background: #2c2c2e; border: 1px solid #3a3a3c; border-radius: 6px;
+  color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
 }
 .bottom input::placeholder { color: var(--text); }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -63,15 +66,15 @@ html, body, #root { margin: 0; height: 100%; overflow: hidden; }
 /* page-flip writes min-width/min-height inline from its settings (huge in single mode). */
 .book { min-width: 0 !important; min-height: 0 !important; }
 
-.page { background: #fff; }
+.page { background: #fff; box-shadow: 0 1px 4px rgba(43, 38, 34, 0.18); }
 .page img { width: 100%; height: 100%; display: block; object-fit: contain; user-select: none; }
 .page img:not([src]) { visibility: hidden; } /* no broken-image icon before reveal() */
 .page-link { position: absolute; }
-.page-link:hover { background: rgba(192, 20, 28, 0.08); }
+.page-link:hover { background: rgba(179, 18, 26, 0.08); }
 
 .overlay {
   position: fixed; inset: 0; z-index: 20;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(43, 38, 34, 0.45);
 }
 .toc {
   margin: 0; padding: 16px 0; list-style: none;
@@ -82,7 +85,7 @@ html, body, #root { margin: 0; height: 100%; overflow: hidden; }
   display: flex; justify-content: space-between; gap: 12px;
   padding: 10px 20px; color: var(--text); text-decoration: none;
 }
-.toc a:hover, .toc .current a { background: #2c2c2e; }
+.toc a:hover, .toc .current a { background: var(--surface); }
 .toc .current a { box-shadow: inset 3px 0 var(--accent); }
 .toc small { color: var(--muted); white-space: nowrap; }
 
@@ -91,7 +94,7 @@ html, body, #root { margin: 0; height: 100%; overflow: hidden; }
 .zoom-bar { position: absolute; top: 8px; right: 8px; z-index: 1; display: flex; gap: 6px; }
 .zoom-bar button {
   height: 36px; min-width: 36px; padding: 0 12px; font: inherit; color: var(--text);
-  background: var(--bar); border: 1px solid #3a3a3c; border-radius: 6px; cursor: pointer;
+  background: var(--bar); border: 1px solid var(--border); border-radius: 6px; cursor: pointer;
 }
 .zoom-scroll { height: 100%; overflow: auto; padding-top: 52px; cursor: grab; user-select: none; }
 .zoom-scroll:active { cursor: grabbing; }
