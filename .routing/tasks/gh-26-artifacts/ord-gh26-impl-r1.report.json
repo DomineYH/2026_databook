@@ -1,0 +1,23 @@
+{
+ "status": "RESULT_SUBMITTED",
+ "order_id": "ord-gh26-impl-r1",
+ "commits": [{"sha": "43155a5", "subject": "Keep a held pinch or drag going after the full-size view resizes"}],
+ "files_changed": [{"path": "web/src/ZoomView.tsx", "insertions": 15, "deletions": 7}],
+ "verification": [
+  {"check_id": "red-repro1", "command_or_steps": "baseline dist-base on :4336, pinch.cjs (390x844, +x15, touchStart gap 100, resize 844x390, touchMove 60)", "result": "fail_as_expected", "notes": "after resize 3200px/379% scroll 423/841; gap 60 -> 3200px/379% (stuck)"},
+  {"check_id": "red-repro2", "command_or_steps": "baseline, drag.cjs repro2 (mouse.down 200,300; resize 844x390; move 201,301)", "result": "fail_as_expected", "notes": "after resize 423/841; 1px move -> 1405/1985"},
+  {"check_id": "red-zoom-during-drag", "command_or_steps": "baseline, drag.cjs zoomDuringDrag", "result": "fail_as_expected", "notes": "after Ctrl+wheel 118/84 (110%); 1px move -> 141/397"},
+  {"check_id": "green-repro1", "command_or_steps": "fixed dist on :4337, pinch.cjs", "result": "pass", "notes": "after resize 3200px/379% 423/841; held pinch gaps 90/80/70/60 -> 2880/2560/2240/1920px; 60 -> 1920px 227% (same as fresh-pinch control 1920px 227%). Unclamped resize 844->390 then 100->60 -> 227%."},
+  {"check_id": "green-repro2", "command_or_steps": "fixed, drag.cjs repro2", "result": "pass", "notes": "after resize 423/841; 1px move -> 422/840"},
+  {"check_id": "green-ctrlwheel-during-drag", "command_or_steps": "fixed, drag.cjs zoomDuringDrag (1440x900, dblclick 2x, drag, Ctrl+wheel out while held, 1px move)", "result": "pass", "notes": "118/84 -> 117/83 (1px). Also plain wheel during drag 750/698 -> 749/697 (baseline jumped to 749/397); shrink-under-drag resize 1000/5031 -> 999/5030."},
+  {"check_id": "green-no-resize-pinch-scrollbars", "command_or_steps": "fixed, drag.cjs scrollbars (ignoreDefaultArgs --hide-scrollbars, 1440x900, gaps 100,110,120,130,...)", "result": "pass", "notes": "100%,110%,120%,130%,120%,100%... identical to baseline; ResizeObserver fired mid-pinch (roCalls 3->4->5->6, clientH 900<->885) without interrupting"},
+  {"check_id": "green-23-regression", "command_or_steps": "reg.cjs on base and fix, diff of JSON outputs", "result": "pass", "notes": "outputs byte-identical. Ctrl+wheel point [0,0.3472,0.1707] kept; dblclick 2x point [0,0.625,0.2198] kept; drag 1000/598; past edge 0/0 and back 0/0 (overshoot still owed); +/- keys and buttons 125%/100%; 0 -> 100%; 390 max 3200px 821% -> 1440x900 3200px 222%; visualViewport.scale 1; hash #/p/20. Both builds log one identical 404 resource error (pre-existing)."},
+  {"check_id": "green-subpixel-drift", "command_or_steps": "drift.cjs at dsf 1, 1.25, 2: 300 moves of -0.3/+0.7 px from 700/700 and back", "result": "pass", "notes": "all dsf: end 790/490 = expected 790/490, back to 700/700 (same as baseline)"},
+  {"check_id": "green-book-view", "command_or_steps": "book.cjs (390x844, #/p/20): fast left touch swipe, short corner mouse drag, next/prev buttons, ArrowRight/ArrowLeft", "result": "pass", "notes": "#/p/20 -> swipe #/p/21 -> short corner drag stays #/p/21 -> next #/p/22 -> prev #/p/21 -> Right #/p/22 -> Left #/p/21; identical to baseline; no errors"},
+  {"check_id": "repo-test", "command_or_steps": "cd web && npm test && npm run build", "result": "pass", "notes": "31 tests passed; build exit 0"},
+  {"check_id": "repo-lint", "command_or_steps": "cd web && npm run lint", "result": "pass", "notes": "oxlint exit 0"}
+ ],
+ "not_run_with_reasons": ["Real phone rotation: out of scope per brief (PR preview, human check)", "Criterion 3 measured at zoom 2x with deviceScaleFactor 1; dsf 2 covered only by the drift probe"],
+ "open_issues": ["npm ci was run in the worktree (web/node_modules was missing); gitignored, not committed"],
+ "question": null
+}

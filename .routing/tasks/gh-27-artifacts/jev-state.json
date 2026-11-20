@@ -1,0 +1,34 @@
+{
+ "task": "Implement GitHub issue #27 in the static React ebook viewer: with the 크게 보기 or 목차 overlay open, Tab/Shift+Tab leave the overlay once per cycle in browsers that support inert, because Viewer.tsx onKey traps Tab only when inert is missing. Fix: drop the inert condition so the existing nextTrapIndex trap runs in every browser, skip Ctrl/Cmd+Tab, add '.overlay .zoom-scroll' to the trap selector, give the .zoom-scroll div tabIndex={0} (ZoomView.tsx), and add one CSS line so its focus outline is drawn inside (index.css). About 5 lines in 3 files; focus-return logic unchanged.",
+ "context": {
+  "changed_paths": [
+   "web/src/Viewer.tsx (onKey Tab branch and its comment)",
+   "web/src/ZoomView.tsx (.zoom-scroll tabIndex)",
+   "web/src/index.css (.zoom-scroll:focus-visible)"
+  ],
+  "observed_behavior": "Triage (Claude Fable 5.2, Chromium, HEAD 4116ea0): zoom overlay Tab order 닫기 -> .zoom-scroll -> BODY (document.hasFocus false) -> 축소...; TOC 제13장 -> BODY -> 표지; same for Shift+Tab. Deleting HTMLElement.prototype.inert makes the unmodified build wrap correctly. A page-injected prototype of the recommended fix kept focus inside both overlays for 11-17 presses each way and kept Esc focus return, zoom keys and TOC navigation.",
+  "contracts": "No external API. Browser input/focus APIs only. page-flip 2.0.7 vendored and not touched. Static site, no auth, no persisted data, no new dependency.",
+  "test_setup": "vitest pure-function tests (web/src/book.ts, web/src/zoom.ts); no jsdom. UI behaviour verified with scripted Chromium (Playwright, CDP touch emulation) against vite preview, as for PRs #14, #17, #20, #21, #24. CI runs `cd web && npm test && npm run build` and `cd web && npm run lint`; main 4116ea0 passed CI.",
+  "verified_flags": {
+   "security_sensitive": false,
+   "data_sensitive": false,
+   "shared_core_change": false,
+   "production_impact": false,
+   "minor_scope_verified": false,
+   "active_incident_related_to_task": false,
+   "touches_ui": true,
+   "touches_external_api": false,
+   "needs_design": false,
+   "require_independent_review": true
+  },
+  "evidence_gaps": [],
+  "consumers": "Viewer.tsx is the app's single UI component, imported only by web/src/main.tsx; ZoomView.tsx is used only by Viewer.tsx. Nothing is published as a library.",
+  "testing_facts": "nextTrapIndex in web/src/book.ts is already unit-tested and is reused unchanged; the change itself is in a keydown handler and markup with no unit seam. Verified with scripted Chromium key presses reading document.activeElement and document.hasFocus(); Safari/iPadOS/Firefox are a human check.",
+  "owner_decisions": "Owner accepted the triage defaults on 2026-11-20: the zoom scroll area is a Tab stop (tabIndex 0, visible focus); plain Tab visiting every TOC link in Safari is accepted. Real Safari/iPad/Firefox check is a human step after the PR.",
+  "design_evidence": ".routing/evidence/ord-gh27-triage-r1.json; agent brief with 9 acceptance checks posted on issue #27."
+ },
+ "testing_evidence": {
+  "test_seam": "substantial_setup: no unit seam; scripted browser check",
+  "existing_checks": "main 4116ea0 CI passed"
+ }
+}

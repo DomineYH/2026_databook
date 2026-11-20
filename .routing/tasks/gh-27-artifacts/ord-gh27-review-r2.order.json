@@ -1,0 +1,71 @@
+{
+ "task_id": "gh-27",
+ "order_id": "ord-gh27-review-r2",
+ "order_revision": 1,
+ "role_id": "task-verifier",
+ "purpose": "independent_review",
+ "at_stage": "independent_review_and_ci",
+ "run_when": "now",
+ "objective": "Independently review PR #29 (branch fix/issue-27, commit 4d263ca, diff 4116ea0..4d263ca) fixing GitHub issue #27: Tab/Shift+Tab stay inside the 크게 보기 and 목차 overlays in every browser (Viewer.tsx onKey trap without the inert condition, Ctrl/Cmd+Tab skipped, .zoom-scroll in the cycle with tabIndex 0, focus outline drawn inside).",
+ "acceptance_criteria": [
+  "1440x900 #/p/20, 크게 보기 opened with the button: Tab x12 and Shift+Tab x12 (real key presses) -> after every press document.activeElement is inside .overlay and document.hasFocus() is true; order 축소, 원래 크기(100%), 확대, 닫기, scroll area and the reverse. Red on the unchanged build (reaches BODY).",
+  "목차: Tab x17 and Shift+Tab x17 -> always inside .overlay; 제13장 -> 표지 and 표지 -> 제13장. Red on the unchanged build.",
+  "Same two results after running `delete HTMLElement.prototype.inert` in the page.",
+  "Focus return: (1) open by button, Esc -> the 크게 button; (2) TOC button focused, double-click a page, Tab a few times, Esc -> TOC button; (3) page-number input focused, double-click a page, click ✕ 닫기 -> the input; (4) TOC closed with Esc -> TOC button; (5) TOC link chosen with Tab + Enter -> hash page changes, TOC closes, focus on the TOC button.",
+  "With focus on the scroll area, + = - 0 give 125% -> 156% -> 125% -> 100% and PageDown scrolls; with focus on a button the zoom keys still work; mouse drag pans and double-click zooms with no visible focus ring.",
+  "A screenshot with the scroll area focused by Tab shows a visible focus indicator (save it under the scratch dir).",
+  "With an overlay open, a cancelable keydown {key:'Tab', ctrlKey:true} is not defaultPrevented and focus does not move.",
+  "After closing, ArrowLeft/ArrowRight turn pages and Tab on the book page is native (not trapped).",
+  "`cd web && npm test && npm run build` and `cd web && npm run lint` pass."
+ ],
+ "input_refs": [
+  "git diff 4116ea0..4d263ca",
+  "gh issue view 27 --comments (issue, triage comment with owner decisions and the agent brief = the spec)",
+  "gh pr view 29 / gh pr checks 29",
+  "implementer report (claims, not proof): /mnt/c/dev/2026_databook-wt/gh-27/.routing/tasks/ord-gh27-impl-r1.report.json",
+  "implementer scripts (may be reused): /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-impl-r1/",
+  "triage evidence (claims): /mnt/c/dev/2026_databook/.routing/evidence/ord-gh27-triage-r1.json",
+  "an earlier independent review (gpt-6.1-terra xhigh) passed this revision: /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-review-r1/review.md - form your own judgement; do not just confirm it"
+ ],
+ "workspace": "/mnt/c/dev/2026_databook-wt/gh-27",
+ "input_version": "4d263ca",
+ "read_scope": [
+  "repository:read-only"
+ ],
+ "write_scope": [
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-review-r2/"
+ ],
+ "allowed_actions": [
+  "read/search files",
+  "git show/diff/log (read-only)",
+  "gh issue view / gh pr view / gh pr checks (read-only)",
+  "cd web && npm test / npm run build / npm run lint",
+  "npx vite build --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-review-r2/dist (and a baseline build of 4116ea0 from git archive into /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-review-r2/base-src -> /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-review-r2/dist-base), npx vite preview --strictPort on ports 4353 and 4354 only, driven by a Node script under /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-review-r2/ using require('/home/dominelinux/.npm/_npx/e41f203b7505f1fb/node_modules/playwright-core') chromium.launch({headless:true}); CDP via page.context().newCDPSession(page). Do not use the Playwright MCP browser (another reviewer runs in parallel). Stop servers when done."
+ ],
+ "constraints_and_local_discretion": [
+  "Read-only on the repository: do not edit, stage, commit, push, or comment on GitHub. AGENTS.md/CLAUDE.md describe the host/coordinator, not you; do not start agents or panes.",
+  "Verdict rules: PASS = no important findings and every acceptance criterion met by code inspection and/or browser evidence. FAIL = at least one important finding (a concrete defect or unmet criterion caused by this change). BLOCKED only if you cannot read the inputs. Pre-existing issues and the local-preview 404 for /_vercel/insights/script.js are pre_existing and never fail the review. Real-device / Safari / Firefox checks are a human step and not a reason to fail.",
+  "Owner decisions (do not report as defects): the zoom scroll area is a Tab stop (tabIndex 0, visible focus); Alt/Option+Tab is trapped; plain Tab visits every TOC link in Safari too; inert stays on header/main/nav.",
+  "Questions: (1) Is the cycle correct in both overlays and both directions, including when focus is on BODY (after a mouse click inside the overlay) or on an element outside the cycle? (2) Could the trap fire when no overlay is visible (stale zoomed/tocOpen in the effect closure) or block Tab elsewhere? (3) Focus return paths (#10) and TOC link Enter navigation unchanged? (4) Does tabIndex=0 on .zoom-scroll change mouse drag/double-click behaviour, the #23 zoom keys, or touch behaviour on phones (e.g. focus ring on tap, scroll-into-view jumps)? (5) Is the focus outline visible and only for keyboard focus? (6) Anything simpler that meets the criteria?",
+  "Report only actionable findings with file:line and a concrete failure scenario."
+ ],
+ "verification": [
+  "review of diff 4116ea0..4d263ca",
+  "npm test / build / lint",
+  "browser re-check of the criteria you doubt"
+ ],
+ "stop_conditions": [
+  "worktree HEAD is not 4d263ca -> BLOCKED"
+ ],
+ "deliverable": "Write /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-review-r2/review.md: a block starting with the line REVIEW_BEGIN and ending with REVIEW_END, containing verdict PASS|FAIL|BLOCKED, reviewed_revision, findings [severity important|nit|pre_existing, file:line, summary, failure_scenario], criteria_check (each acceptance criterion -> met/unmet/unverifiable + evidence), answers to the questions, checks_run with results. Then print as your final message exactly one line: REPORT RESULT_SUBMITTED /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-review-r2/review.md (or REPORT BLOCKED <reason>).",
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "pane_id": "w6:pV",
+ "setting_overrides": {
+  "harness": "codex",
+  "model": "gpt-6.2-sol",
+  "effort": "high",
+  "source": "user prompt (MODEL-1 prompt override)"
+ }
+}

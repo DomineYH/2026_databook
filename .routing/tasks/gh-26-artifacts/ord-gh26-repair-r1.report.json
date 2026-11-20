@@ -1,0 +1,36 @@
+{
+  "status": "RESULT_SUBMITTED",
+  "order_id": "ord-gh26-repair-r1",
+  "task_id": "gh-26",
+  "input_version": "43155a5",
+  "commits": ["a5e096c5f47e74219cd47b737225b762f8bbbb0b"],
+  "files_changed": ["web/src/ZoomView.tsx"],
+  "change_summary": "Host's recommended fix. The pinch state now records the latest finger span (pinch.span), updated on every two-finger touchmove. When the ResizeObserver callback actually changes the zoom (zoom.current !== was) during a held pinch, the pinch is rebased to { distance: latest span, zoom: corrected zoom }. Callbacks that leave the zoom unchanged (scrollbar changes, unclamped resizes) leave the pinch untouched. Drag code, zoomTo, zoomAtCenter, zoom.ts, index.css and Viewer.tsx are unchanged.",
+  "verification": {
+    "builds": "dist-before = 43155a5 (vite preview :4337), dist = a5e096c working tree (vite preview :4336). Probes are in /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-repair-r1/ (before.*.json / fix.*.json).",
+    "red_on_43155a5": "edge-cases.cjs keyBeforeClamp: 200% (780px) -> + 250% (975px) -> resize 1600x900 200% (3200px) -> move to 190px span gives 2432px / 152%. RED as the order expected.",
+    "new_criterion": "PASS. The same steps on the fix: 200% -> 250% -> 200% (3200px) -> 3040px / 190%.",
+    "repro1_pinch_after_resize": "PASS. 821% (3200px) -> 844x390 379% (3200px) -> held 60px gives 1920px / 227%. The full sequence from 90 to 30px goes 2880/2560/2240/1920/1600/1504/1472/1440/1280/960, identical to 43155a5.",
+    "repro2_drag_after_resize": "PASS. Scroll 423/841 after the resize; a 1px move gives 422/840.",
+    "ctrl_wheel_during_drag_1440x900_2x": "PASS. After the wheel (110%) scroll is 118/84; a 1px move gives 117/83.",
+    "pinch_with_classic_scrollbars_no_resize": "PASS. Gaps 100,110,120,130 give 100%, 110%, 120%, 130%. The observer fired mid-pinch as clientH went 900->885, and the pinch was not interrupted.",
+    "issue23_regression": "PASS, reg.cjs output identical to 43155a5. Ctrl+wheel anchor before/after 0.3472/0.1707 matches. dbl-click 2x anchor 0.625/0.2198 matches. drag 1000/598, past edge 0/0, back from edge still 0/0. +/- keys and buttons 125%/100%, key 0 100%. 390 max -> 1440x900 gives 3200px/222%. visualViewport.scale 1, hash #/p/20.",
+    "subpixel_drift": "PASS at dsf 1, 1.25 and 2: 700/700 -> 790/490 (expected 790/490) -> back to 700/700.",
+    "book_view": "PASS, identical: fast left swipe 20->21, short corner drag stays 21, next 22, prev 21, ArrowRight 22, ArrowLeft 21.",
+    "other_probes_identical_to_43155a5": "pinch.cjs, drag.cjs, extra.cjs, drift.cjs, reg.cjs and book.cjs give byte-identical JSON on both builds. In edge-cases.cjs only pastMax (the accepted side effect below), the inherited belowMin scrollTop (112 -> 91, same zoom labels) and keyBeforeClamp (the fix) differ.",
+    "repo-test": "cd web && npm test: 2 files, 31 tests passed",
+    "repo-build": "cd web && npm run build: exit 0",
+    "repo-lint": "cd web && npm run lint (oxlint): exit 0, no warnings"
+  },
+  "side_effects": [
+    "Accepted per order: pastMax case. Fingers spread from 100px to 150px at the 390px maximum, then a resize to 844x390 clamps to 379%. The pinch-in dead zone is now gone and the page shrinks at once: 140px -> 354% (2986.66px), 100px -> 253%, 90px -> 227%. On 43155a5 it stayed at 379% down to 100px, then 341% at 90px."
+  ],
+  "out_of_scope_check": "Pre-existing jump when a key zoom happens during a held pinch without a clamping resize (keyDuringPinch: 120% -> + 150% -> unclamped resize 844x390 -> 122% span gives 122%): unchanged by this fix. Output is identical on both builds, because the unclamped resize leaves the pinch untouched.",
+  "not_run_with_reasons": [
+    "Real devices, Safari and Firefox were not tested: only headless Chromium is available, with touch emulated over CDP."
+  ],
+  "open_issues": [
+    "The keyDuringPinch jump (key zoom during a held pinch, no resize) remains, as the order specified."
+  ],
+  "cleanup": "Both preview servers (4336, 4337) were stopped. Every probe closes its browser, and no vite or chromium processes remain. The report is not committed. Nothing was pushed."
+}

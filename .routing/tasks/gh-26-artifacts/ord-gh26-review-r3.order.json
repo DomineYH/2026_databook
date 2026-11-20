@@ -1,0 +1,73 @@
+{
+ "task_id": "gh-26",
+ "order_id": "ord-gh26-review-r3",
+ "order_revision": 1,
+ "role_id": "task-verifier",
+ "purpose": "independent_review",
+ "at_stage": "independent_review_and_ci",
+ "run_when": "now",
+ "objective": "Re-review PR #28 (branch fix/issue-26) after repair commit a5e096c (repair diff 43155a5..a5e096c; full diff 4116ea0..a5e096c). Your previous review r2 FAILED 43155a5 with one important finding (held pinch jumps after a resize clamps a zoom set by another control). Check that the finding is fixed and that nothing else regressed.",
+ "acceptance_criteria": [
+  "NEW (review finding): 390x844 #/p/20 크게 보기 at 100%; hold two fingers and spread 100px -> 200px (200%); keep them down, press + (250%); resize to 1600x900 so the observer clamps to 200% (3200px); move the held fingers to 190px apart -> image 3040px (190%). Red on 43155a5 (2432px / 152%).",
+  "Repro 1 (390x844, #/p/20, open 크게 보기, '+' x15 -> 3200px/821%; touchStart two points 100px apart; setViewportSize 844x390 -> 3200px/379%): a held touchMove to 60px apart gives image width 1920px (227%). Red on the unchanged build (stays 3200px).",
+  "Repro 2 (390x844 max zoom; mouse.down at (200,300); setViewportSize 844x390 -> scroll 423/841): mouse.move(201,301) gives scroll 422/840. Red on the unchanged build (1405/1985).",
+  "1440x900 at 2x, mouse held and dragging, Ctrl+wheel zoom out while held: the next 1px mouse move changes scroll by 1px only.",
+  "Without a resize, a held pinch is not interrupted: launch Chromium WITHOUT --hide-scrollbars (ignoreDefaultArgs: ['--hide-scrollbars']) at 1440x900, pinch from 100% through gaps 100,110,120,130 -> 110%, 120%, 130%.",
+  "#23 behaviour unchanged (compare with the baseline build): Ctrl+wheel and double-click keep the point under the pointer; drag follows the pointer and edge overshoot is still owed on the way back; +, -, 0 keys and buttons; 390px max -> 1440x900 gives 3200px/222%; visualViewport.scale 1; hash stays #/p/20.",
+  "Sub-pixel drag does not drift: 300 moves of 0.3px/0.7px from scroll 700/700 end at the expected position and return to 700/700.",
+  "Book view unchanged: 390x844 fast left swipe turns, short corner drag stays, prev/next buttons and arrow keys turn.",
+  "`cd web && npm test && npm run build` and `cd web && npm run lint` pass."
+ ],
+ "input_refs": [
+  "git diff 4116ea0..43155a5",
+  "gh issue view 26 --comments (issue, triage comment with owner decisions and the agent brief = the spec)",
+  "gh pr view 28 / gh pr checks 28",
+  "implementer report (claims, not proof): /mnt/c/dev/2026_databook-wt/gh-26/.routing/tasks/ord-gh26-impl-r1.report.json",
+  "implementer scripts (may be reused): /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-impl-r1/",
+  "triage evidence (claims): /mnt/c/dev/2026_databook/.routing/evidence/ord-gh26-triage-r1.json",
+  "your previous review: /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-review-r2/review.md and its probes in /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-review-r2/",
+  "repair report (claims): /mnt/c/dev/2026_databook-wt/gh-26/.routing/tasks/ord-gh26-repair-r1.report.json",
+  "accepted side effect (owner/host decision, not a defect): if the fingers were spread past the maximum when a resize clamps, the pinch-in dead zone is dropped and the page shrinks at once. The pre-existing jump on key zoom during a held pinch without a resize is out of scope (pre_existing)."
+ ],
+ "workspace": "/mnt/c/dev/2026_databook-wt/gh-26",
+ "input_version": "a5e096c",
+ "read_scope": [
+  "repository:read-only"
+ ],
+ "write_scope": [
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-review-r3/"
+ ],
+ "allowed_actions": [
+  "read/search files",
+  "git show/diff/log (read-only)",
+  "gh issue view / gh pr view / gh pr checks (read-only)",
+  "cd web && npm test / npm run build / npm run lint",
+  "npx vite build --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-review-r3/dist (and a baseline build of 4116ea0 from git archive into /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-review-r3/base-src -> /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-review-r3/dist-base), npx vite preview --strictPort on ports 4351 and 4352 only, driven by a Node script under /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-review-r3/ using require('/home/dominelinux/.npm/_npx/e41f203b7505f1fb/node_modules/playwright-core') chromium.launch({headless:true}); CDP via page.context().newCDPSession(page). Do not use the Playwright MCP browser (another reviewer runs in parallel). Stop servers when done."
+ ],
+ "constraints_and_local_discretion": [
+  "Read-only on the repository: do not edit, stage, commit, push, or comment on GitHub. AGENTS.md/CLAUDE.md describe the host/coordinator, not you; do not start agents or panes.",
+  "Verdict rules: PASS = no important findings and every acceptance criterion met by code inspection and/or browser evidence. FAIL = at least one important finding (a concrete defect or unmet criterion caused by this change). BLOCKED only if you cannot read the inputs. Pre-existing issues and the local-preview 404 for /_vercel/insights/script.js are pre_existing and never fail the review. Real-device / Safari / Firefox checks are a human step and not a reason to fail.",
+  "Owner decisions (do not report as defects): rebase held gestures (not cancel); the drag fix also changes same-cause cases (Ctrl+wheel/key zoom or plain wheel during a held drag) and that is accepted; no new unit test (no pure seam).",
+  "Questions: (1) Pinch: is pinch.zoom *= zoom.current/was correct when the observer fires with no clamp, when the fingers are past the max or below 1x at resize time, and when zoom.current changes for other reasons during a pinch? (2) Drag: does moving from the live scroll with the remainder carry keep the content under the pointer, keep edge overshoot owed, and not drift with fractional pointer coordinates or integer scroll offsets (try deviceScaleFactor 1 and 2)? Any case where d.x/d.y grows unbounded or the drag gets stuck? (3) Are #23 behaviours (anchor, double-click, keys, buttons, max clamp after resize, touch one-finger scroll) and the book view unchanged? (4) Anything simpler that meets the criteria?",
+  "Report only actionable findings with file:line and a concrete failure scenario."
+ ],
+ "verification": [
+  "review of repair diff 43155a5..a5e096c and full diff 4116ea0..a5e096c",
+  "npm test / build / lint",
+  "browser re-check: the r2 finding (edge-cases.cjs keyBeforeClamp) and the criteria you doubt"
+ ],
+ "stop_conditions": [
+  "worktree HEAD is not a5e096c -> BLOCKED"
+ ],
+ "deliverable": "Write /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-review-r3/review.md: a block starting with the line REVIEW_BEGIN and ending with REVIEW_END, containing verdict PASS|FAIL|BLOCKED, reviewed_revision, findings [severity important|nit|pre_existing, file:line, summary, failure_scenario], criteria_check (each acceptance criterion -> met/unmet/unverifiable + evidence), answers to the questions, checks_run with results. Then print as your final message exactly one line: REPORT RESULT_SUBMITTED /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh26-review-r3/review.md (or REPORT BLOCKED <reason>).",
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "pane_id": "w6:pT",
+ "setting_overrides": {
+  "harness": "codex",
+  "model": "gpt-6.2-sol",
+  "effort": "high",
+  "source": "user prompt (MODEL-1 prompt override)"
+ }
+}

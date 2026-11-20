@@ -1,0 +1,28 @@
+{
+ "status": "RESULT_SUBMITTED",
+ "order_id": "ord-gh27-impl-r1",
+ "commits": [{"sha": "4d263ca3b89b756e8398b6b64319afa25cff7a8f", "subject": "Keep Tab and Shift+Tab inside the full-size view and the table of contents"}],
+ "files_changed": [
+  {"path": "web/src/Viewer.tsx", "added": 3, "removed": 3, "what": "Tab branch: dropped the inert condition, skip Ctrl/Cmd+Tab (Alt still trapped), selector adds '.overlay .zoom-scroll', comment updated"},
+  {"path": "web/src/ZoomView.tsx", "added": 1, "removed": 1, "what": ".zoom-scroll tabIndex={0}"},
+  {"path": "web/src/index.css", "added": 1, "removed": 0, "what": ".zoom-scroll:focus-visible { outline-offset: -2px; }"}
+ ],
+ "verification": [
+  {"check_id": "red", "command_or_steps": "vite build of 4116ea0 to /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-impl-r1/dist-base, preview :4338, node /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-impl-r1/tabs.js 4338 base (real key presses, 1440x900, #/p/20)", "result": "red as expected", "notes": "Native inert: zoom Tab x12 = 닫기→scroll→BODY(hasFocus false)→축소→100%→확대→닫기→scroll→BODY…; 2 escapes per 12 presses each way. TOC Tab x17 from 제1장: …제13장→BODY→표지; Shift+Tab: 표지→BODY→제13장; 1 escape each way. With 'delete HTMLElement.prototype.inert': JS trap active, no escapes, but scroll area skipped (cycle 축소/100%/확대/닫기 only). Data: /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-impl-r1/tabs-base.json"},
+  {"check_id": "green-tab-cycle", "command_or_steps": "vite build to /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-impl-r1/dist, preview :4339, node /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-impl-r1/tabs.js 4339 after", "result": "pass", "notes": "Both inert and deleted-inert runs: outCount 0 for all four sequences, hasFocus true throughout. Zoom Tab: 닫기(autoFocus)→scroll→축소→원래 크기→확대→닫기→scroll…; Shift+Tab exact reverse. TOC: 제13장→표지 and 표지→제13장. Data: /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-impl-r1/tabs-after.json"},
+  {"check_id": "green-focus-return", "command_or_steps": "node /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-impl-r1/rest.js 4339", "result": "pass", "notes": "(1) 크게 보기 button + Esc -> 크게 보기; (2) TOC button focused, dblclick page, Tab x3 (stayed inside), Esc -> 목차 열기; (3) page input focused, dblclick page, click 닫기 -> 이동할 쪽 번호; (4) TOC Esc -> 목차 열기; (5) Tab x2 to 제3장, Enter -> hash #/p/20 -> #/p/45, TOC closed, focus 목차 열기"},
+  {"check_id": "green-zoom-keys", "command_or_steps": "node /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-impl-r1/rest.js 4339", "result": "pass", "notes": "Focus on zoom-scroll (via Tab): + = - 0 -> 125%,156%,125%,100%; PageDown scrollTop 0 -> 787. Focus on 닫기 button: same 125/156/125/100."},
+  {"check_id": "green-mouse", "command_or_steps": "node /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-impl-r1/mouse.js 4339 (fresh page, mouse only)", "result": "pass", "notes": "dblclick on scroll area -> 200%; drag moved scroll [720,398] -> [870,518]; after dblclick/drag activeElement=zoom-scroll, :focus-visible matches nothing. Screenshot /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-impl-r1/mouse-no-ring-4339.png"},
+  {"check_id": "green-focus-ring", "command_or_steps": "Tab to scroll area, screenshot", "result": "pass", "notes": "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-impl-r1/scroll-focus.png shows a 2px rgb(192,20,28) outline drawn inside the viewport edges; computed outline-offset -2px, :focus-visible true"},
+  {"check_id": "green-ctrl-tab", "command_or_steps": "dispatch cancelable keydown {key:'Tab', ctrlKey:true} (and metaKey:true) on activeElement with zoom open", "result": "pass", "notes": "defaultPrevented false, focus unchanged for both. altKey:true Tab is trapped (defaultPrevented true), as required."},
+  {"check_id": "green-after-close", "command_or_steps": "node /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-impl-r1/rest.js 4339 + /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh27-impl-r1/mouse.js", "result": "pass", "notes": "ArrowRight #/p/20 -> #/p/22, ArrowLeft -> #/p/20; synthetic Tab keydown not defaultPrevented; real Tab from 목차 열기 -> 이전 쪽 -> 이동할 쪽 번호 -> 다음 쪽, identical to baseline build."},
+  {"check_id": "repo-test", "command_or_steps": "cd web && npm test && npm run build", "result": "pass", "notes": "31 tests passed; build exit 0"},
+  {"check_id": "repo-lint", "command_or_steps": "cd web && npm run lint", "result": "pass", "notes": "exit 0"}
+ ],
+ "not_run_with_reasons": ["Real Safari/iPad/Firefox not checked (out of scope per brief; mark 미확인 in PR)."],
+ "open_issues": [
+  "npm ci was run in the worktree because web/node_modules was missing (allowed by the order).",
+  "Observation: if focus reaches the scroll area by keyboard and the user then clicks it, Chromium keeps the ring (native :focus-visible behavior for an already focused element). A fresh mouse-only session shows no ring."
+ ],
+ "question": null
+}
