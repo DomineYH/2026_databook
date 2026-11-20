@@ -1,0 +1,37 @@
+{
+ "task": "Implement GitHub issue #23 in the static React ebook viewer: add zoom in/out inside the existing '크게 보기' (zoom overlay) only. Desktop: Ctrl/Cmd+wheel zooms about the cursor, plain wheel keeps scrolling, mouse drag pans, double-click toggles 1x/2x, -/100%/+ buttons and +/-/0 keys. Phone: two-finger pinch zooms about the midpoint, one finger scrolls natively, browser page zoom suppressed inside the overlay. Scale 1x (today's fit width) to 2x the 1600px source. Move the overlay into a new web/src/ZoomView.tsx, put pure scale maths in web/src/zoom.ts with vitest tests; book view and page-flip patches unchanged. Design was triaged and approved by the owner.",
+ "context": {
+  "changed_paths": [
+   "web/src/ZoomView.tsx (new)",
+   "web/src/zoom.ts (new)",
+   "web/src/zoom.test.ts (new)",
+   "web/src/Viewer.tsx (overlay block replaced by <ZoomView>)",
+   "web/src/index.css (.zoom block)"
+  ],
+  "observed_behavior": "Triage (Claude Fable 5.2, Chromium): the overlay stacks page images at min(100%,1600px) width with vertical scroll only; plain and Ctrl wheel only scroll; a pinch inside the overlay zooms the whole browser viewport (visualViewport.scale 1 -> 5), bars included; page-flip cancels touchstart on the book so pinch on the book does nothing.",
+  "contracts": "No external API. Browser input APIs only (wheel with passive:false, touch events, pointer events, touch-action, Safari gesturestart). page-flip 2.0.7 vendored and not touched. Static site, no auth, no persisted data, no new dependency.",
+  "test_setup": "vitest pure-function tests (web/src/book.ts today); no jsdom. zoom.ts gets vitest unit tests. UI behaviour verified with scripted Chromium (Playwright, CDP touch emulation) against vite preview, as for PRs #14, #17, #20, #21. CI runs `cd web && npm test && npm run build` and `cd web && npm run lint`; main 88b4492 passed CI.",
+  "verified_flags": {
+   "security_sensitive": false,
+   "data_sensitive": false,
+   "shared_core_change": false,
+   "production_impact": false,
+   "minor_scope_verified": false,
+   "active_incident_related_to_task": false,
+   "touches_ui": true,
+   "touches_external_api": false,
+   "needs_design": false,
+   "require_independent_review": true
+  },
+  "evidence_gaps": [],
+  "consumers": "Viewer.tsx is the app's single UI component, imported only by web/src/main.tsx; ZoomView would be used only by Viewer. Nothing is published as a library.",
+  "testing_facts": "Scale clamping and wheel/pinch-to-scale maths are pure functions with a clear unit seam (zoom.ts). Anchoring, wheel/touch handling and focus need a real DOM: verify in Chromium with Playwright and CDP two-point touch.",
+  "owner_decisions": "All six triage questions answered by the owner on 2026-11-20 (accepted the recommended defaults): overlay-only scope; Ctrl/Cmd+wheel zooms, plain wheel scrolls; max 2x source (3200 CSS px), min 1x; no new dependency (CSS --zoom width + native scroll); Esc closes as today; real-device iOS Safari/Android Chrome check is a human step on the PR preview, not part of the agent's acceptance.",
+  "design_evidence": "Triage evidence .routing/evidence/ord-gh23-triage-r1.json (Claude Fable 5.2 high, read code and ran Chromium): component boundary (ZoomView.tsx props pages+onClose), CSS variable approach, anchor-by-scroll maths, native non-passive wheel/touch listeners, pointer-drag pan, keyboard +/-/0, focus/Tab-trap/Esc kept in Viewer.tsx, explicit list of files not to touch (onInit patches, settle, dropFold, FlipBook props). Agent brief with 8 acceptance checks posted on issue #23.",
+  "known_external_uncertainty": "iOS Safari touch-action/gesturestart behaviour is unverified; the brief names the fallback (touch-action: none plus own one-finger pan) and the owner accepted a post-PR human device check. This does not block implementation or the Chromium acceptance checks."
+ },
+ "testing_evidence": {
+  "test_seam": "clear_unit_seam for zoom.ts maths; scripted browser check for the overlay",
+  "existing_checks": "main 88b4492 CI passed"
+ }
+}

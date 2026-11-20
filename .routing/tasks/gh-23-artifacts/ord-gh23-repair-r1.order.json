@@ -1,0 +1,66 @@
+{
+ "task_id": "gh-23",
+ "order_id": "ord-gh23-repair-r1",
+ "order_revision": 1,
+ "role_id": "implementer",
+ "purpose": "repair",
+ "at_stage": "repair",
+ "run_when": "now",
+ "objective": "Fix the independent review's important finding on PR #24 (commit 539b3ab): the 3200px maximum is not enforced when the fit width grows while zoomed. Make one new commit on feat/issue-23 on top of 539b3ab.",
+ "finding": "web/src/ZoomView.tsx:14 (important): at 390px wide zoom to the max (821%), then widen the viewport to 1440px -> images render 11815px wide and the button still shows 821% until the next zoom action. A phone rotation or window resize exceeds the maximum.",
+ "acceptance_criteria": [
+  "390x844 overlay: zoom to the maximum, then set the viewport to 1440x900 (and also 844x390, i.e. a phone rotation) -> image width is at most 3200px (allow 1px rounding) and the percent button shows the re-clamped value; no further input needed.",
+  "Shrinking the viewport while zoomed never drops below 1x and keeps the zoom factor (only clamps when it exceeds the new maximum).",
+  "Every acceptance criterion of ord-gh23-impl-r1 still holds; re-run your desktop, mobile and regression scripts (deskreg/mobile etc.) on the new build.",
+  "zoom.test.ts still passes; add a unit test only if you add pure logic. `cd web && npm test && npm run build` and `cd web && npm run lint` pass."
+ ],
+ "input_refs": [
+  "review: /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-review-r1/review.md",
+  "your previous order: /mnt/c/dev/2026_databook/.routing/tasks/gh-23-artifacts/ord-gh23-impl-r1.order.json",
+  "your scripts: /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-impl-r1/"
+ ],
+ "workspace": "/mnt/c/dev/2026_databook-wt/gh-23",
+ "input_version": "539b3ab",
+ "read_scope": [
+  "repository:read"
+ ],
+ "write_scope": [
+  "web/src/ZoomView.tsx",
+  "web/src/zoom.ts",
+  "web/src/zoom.test.ts",
+  "web/src/index.css (the .zoom rules)",
+  "/mnt/c/dev/2026_databook-wt/gh-23/.routing/tasks/ord-gh23-repair-r1.report.json",
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-repair-r1/"
+ ],
+ "allowed_actions": [
+  "read/search files",
+  "edit the files in write_scope",
+  "cd web && npm test / npm run build / npm run lint",
+  "npx vite build --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-repair-r1/dist and npx vite preview --port 4331 --strictPort (ports 4331/4332 only)",
+  "Chromium via playwright-core as before (scripts under /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-repair-r1/)",
+  "git add / git commit on feat/issue-23"
+ ],
+ "constraints_and_local_discretion": [
+  "You are a WORKER executing this order; do not launch agents, subagents or panes. Work only in /mnt/c/dev/2026_databook-wt/gh-23.",
+  "Smallest fix: when the scroller's fit width changes (e.g. a ResizeObserver on the scroll area, or the window resize event), re-clamp the current zoom with clampZoom(zoom, fitWidth()), apply --zoom and the percent label if it changed. Keep the view roughly where it was (e.g. anchor at the scroller centre via zoomTo) - local discretion. Disconnect/remove the listener on close.",
+  "Out of scope: the pre-existing Tab escape on the inert path (Viewer.tsx onKey), anything outside write_scope.",
+  "Commit: subject in plain English, body says why, end with these two lines exactly:\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01LPmFwaNXbmSn68nUJuz8gK\nDo not push, open PRs, or comment on GitHub.",
+  "Stop preview servers and close the browser when done."
+ ],
+ "verification": [
+  "red: the resize scenario on 539b3ab exceeds 3200px",
+  "green: the same scenario after the fix",
+  "regression: your earlier criterion scripts",
+  "repo-test",
+  "repo-lint"
+ ],
+ "stop_conditions": [
+  "worktree HEAD is not 539b3ab at start -> BLOCKED",
+  "the fix needs changes outside write_scope -> NEEDS_DECISION"
+ ],
+ "deliverable": "One commit on feat/issue-23 plus /mnt/c/dev/2026_databook-wt/gh-23/.routing/tasks/ord-gh23-repair-r1.report.json (same JSON shape as your previous report). Do not commit the report. Final message exactly one line: REPORT <status> .routing/tasks/ord-gh23-repair-r1.report.json",
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "pane_id": "w6:pJ"
+}

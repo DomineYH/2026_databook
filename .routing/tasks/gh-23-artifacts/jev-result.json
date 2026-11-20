@@ -1,0 +1,98 @@
+{
+ "model": "jev-1.13.0",
+ "answers": {
+  "task_type": {
+   "type": "choice",
+   "choice": "feature",
+   "confidence": 1.0,
+   "probabilities": {
+    "docs": 0.0,
+    "bug_fix": 0.0,
+    "feature": 1.0,
+    "refactor": 0.0,
+    "ui_ux": 0.0,
+    "database": 0.0,
+    "security": 0.0,
+    "api_integration": 0.0,
+    "dependency_update": 0.0,
+    "infrastructure": 0.0,
+    "tests": 0.0,
+    "performance": 0.0,
+    "analysis": 0.0,
+    "mixed": 0.0,
+    "other": 0.0
+   }
+  },
+  "work_mode": {
+   "type": "choice",
+   "choice": "delivery",
+   "confidence": 1.0,
+   "probabilities": {
+    "delivery": 1.0,
+    "exploration": 0.0,
+    "emergency": 0.0,
+    "other": 0.0
+   }
+  },
+  "security_sensitive": {
+   "type": "noul",
+   "noul": 0.03
+  },
+  "data_sensitive": {
+   "type": "noul",
+   "noul": 0.02
+  },
+  "shared_core_change": {
+   "type": "noul",
+   "noul": 0.07
+  },
+  "production_impact": {
+   "type": "noul",
+   "noul": 0.04
+  },
+  "minor_eligible": {
+   "type": "noul",
+   "noul": 0.03
+  },
+  "needs_context": {
+   "type": "noul",
+   "noul": 0.16
+  },
+  "needs_design": {
+   "type": "noul",
+   "noul": 0.09
+  },
+  "touches_ui": {
+   "type": "noul",
+   "noul": 0.99
+  },
+  "touches_external_api": {
+   "type": "noul",
+   "noul": 0.05
+  },
+  "changes_user_flow": {
+   "type": "noul",
+   "noul": 0.76
+  },
+  "needs_special_test": {
+   "type": "noul",
+   "noul": 0.4
+  },
+  "testing_mode": {
+   "type": "choice",
+   "choice": "test_first",
+   "confidence": 0.56,
+   "probabilities": {
+    "checks_only": 0.0,
+    "preserve_behavior": 0.0,
+    "test_first": 0.65,
+    "test_with_change": 0.35,
+    "needs_context": 0.0
+   }
+  }
+ },
+ "usage": {
+  "input_tokens": 3585,
+  "output_tokens": 437
+ }
+}

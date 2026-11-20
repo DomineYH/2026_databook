@@ -1,0 +1,62 @@
+{
+ "task_id": "gh-23",
+ "order_id": "ord-gh23-triage-r1",
+ "order_revision": 1,
+ "role_id": "inspector",
+ "purpose": "repository_evidence",
+ "at_stage": "intake",
+ "run_when": "now",
+ "objective": "Triage GitHub issue #23 (DomineYH/2026_databook), a feature request: zoom in/out of book pages with the mouse wheel on desktop and with two-finger pinch on phones. Check the issue's claims about current behaviour, recommend answers to its four open questions, choose the triage label, and if it is agent-ready write an agent brief.",
+ "evidence_gap": "repo: what does the app do today with wheel, Ctrl+wheel and pinch (book view and the '크게' zoom overlay), where should zoom live so it does not fight page-flip's mouse/touch handling and the #11/#15/#18/#19 patches, and what is the smallest change that meets the acceptance criteria? external: is a small existing pan/zoom library worth it versus CSS transform + pointer events (unverified unless checked).",
+ "acceptance_criteria": [
+  "Each 'current behaviour' claim in the issue marked confirmed|refuted|unverified, with file:line evidence (web/src/Viewer.tsx, web/src/index.css, web/node_modules/page-flip/src/UI/UI.ts) and, where you ran a browser, the exact steps and what you observed",
+  "A recommendation for each of the four open questions (where to zoom; wheel vs Ctrl+wheel incl. trackpad pinch; max scale vs the 1600x2265 source images; build vs library) with reasons and what each alternative would cost",
+  "A recommended design: where the code goes (component/file), how it interacts with page-flip, focus/keyboard (#10), Esc, and how 1x behaviour stays unchanged",
+  "Risks and regressions to guard: #6 swipes, #11 buttons/keys, #15/#18/#19 page-flip patches, #10 zoom focus return, iOS Safari gesture quirks",
+  "Triage label from: ready-for-agent | ready-for-human | needs-info | wontfix, with a one-paragraph reason. If owner decisions are still required, list them as concrete questions with your recommended default",
+  "If ready-for-agent: an agent brief (Korean, plain language) with summary, current vs desired behaviour, where to change, acceptance criteria, out of scope"
+ ],
+ "input_refs": [
+  "gh issue view 23 --repo DomineYH/2026_databook",
+  "web/src/Viewer.tsx (openZoom, zoom overlay, keyboard handler, focus return, onInit page-flip patches), web/src/index.css (.zoom, .book, viewport units), web/src/book.ts (pageSrc)",
+  "web/node_modules/page-flip/src/UI/UI.ts (onTouchStart preventDefault, mouse/touch listeners on window), web/node_modules/page-flip/src/PageFlip.ts",
+  "web/package.json (current dependencies), web/public/pages/*.webp (1600x2265)",
+  "closed issues/PRs for context: #6, #8, #10 (PR #20), #11 (PR #14), #15 (PR #17), #18/#19 (PR #21)",
+  "docs/agents/triage-labels.md, GLOSSARY.md, docs/adr/ (domain terms)"
+ ],
+ "workspace": "/mnt/c/dev/2026_databook",
+ "input_version": "88b4492",
+ "read_scope": ["repository:read-only"],
+ "write_scope": [
+  ".routing/evidence/ord-gh23-triage-r1.json",
+  "/tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-triage-r1/ (build output, screenshots, scripts)"
+ ],
+ "allowed_actions": [
+  "read/search files",
+  "git show/diff/log (read-only)",
+  "gh issue view / gh pr view (read-only)",
+  "npm view <package> (read-only registry lookup, for the library question)",
+  "build into a temp dir: cd web && npx vite build --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-triage-r1/dist --emptyOutDir",
+  "serve it: cd web && npx vite preview --port 4323 --strictPort --outDir /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-triage-r1/dist (port 4323 only)",
+  "drive Chromium with the Playwright MCP tools against that server (wheel, Ctrl+wheel, double-click/'크게' overlay; touch emulation via CDP if useful)"
+ ],
+ "constraints_and_local_discretion": [
+  "Read-only on the repository: do not edit, stage, commit, push, install packages, label, or comment on GitHub. The host applies labels and comments.",
+  "You may write only .routing/evidence/ord-gh23-triage-r1.json and files under /tmp/claude-1000/-mnt-c-dev-2026-databook/7a009be3-ff96-4bed-b942-c150b301626e/scratchpad/ord-gh23-triage-r1/. Never build into web/dist or edit anything under web/.",
+  "The repository CLAUDE.md/AGENTS.md describe the host/coordinator, not you: do not start herdr panes, sub-agents or routing calls.",
+  "Desktop Chromium cannot prove iOS Safari pinch behaviour; say what needs a real device instead of guessing. Mark facts about external libraries or browser support as unverified unless you checked them.",
+  "Prefer the smallest design that meets the issue: no new dependency unless it clearly removes more code and risk than it adds (say how big it is).",
+  "Stop the preview server and close the browser when done.",
+  "Keep the brief free of line numbers that will rot; name functions/files instead."
+ ],
+ "stop_conditions": [
+  "HEAD is not 88b4492 (stale input) -> report BLOCKED",
+  "you would need to write anything outside the allowed paths -> report NEEDS_DECISION"
+ ],
+ "deliverable": "Write .routing/evidence/ord-gh23-triage-r1.json as JSON: {order_id, input_version, current_behaviour_checks:[{claim, verdict, evidence, browser_observation}], open_question_recommendations:[{question, recommendation, reasons, alternatives_cost}], recommended_design:{where, how, page_flip_interaction, keyboard_focus, unchanged_at_1x}, risks:[...], label, label_reason, owner_decisions:[{question, recommended_default}], agent_brief (markdown string or null), open_questions:[...]}. Then print as your final message exactly one line: REPORT RESULT_SUBMITTED .routing/evidence/ord-gh23-triage-r1.json (or REPORT BLOCKED <reason> / REPORT NEEDS_DECISION <question>).",
+ "report_to": "current_host_session",
+ "decision_question": null,
+ "launch_channel": "herdr_pane",
+ "pane_id": "w6:pH",
+ "setting_overrides": {"harness": "claude", "model": "claude-fable-5-2", "effort": "high", "source": "user prompt (MODEL-1 prompt override)"}
+}
